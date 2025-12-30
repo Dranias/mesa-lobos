@@ -9,12 +9,14 @@ class RolesDrawer extends StatelessWidget {
   final Map<String, List<String>>
   relaciones; // nombreRol -> [actor, objetivo] (o más)
   final List<String> jugadores; // nombres en orden
+  final List<Rol?> rolesIniciales; // roles seleccionados al inicio
 
   const RolesDrawer({
     super.key,
     required this.rolesAsignados,
     required this.relaciones,
     required this.jugadores,
+    required this.rolesIniciales,
   });
 
   @override
@@ -29,16 +31,34 @@ class RolesDrawer extends StatelessWidget {
           ),
           const Divider(),
 
-          // Lista de jugadores con su rol asignado
-          ...rolesAsignados.entries.map((e) {
-            final index = e.key;
-            final rol = e.value;
+          // Lista de jugadores con su rol inicial y/o asignado
+          ...List.generate(jugadores.length, (index) {
             final jugador = jugadores[index];
+            final rolInicial = rolesIniciales.length > index
+                ? rolesIniciales[index]
+                : null;
+            final rolAsignado = rolesAsignados[index];
+
+            // Si ya fue asignado en la narración, usamos ese; si no, mostramos el inicial
+            final rol =
+                rolAsignado ??
+                rolInicial ??
+                Rol(
+                  nombre: 'Aldeano',
+                  descripcion: 'Sin poder especial',
+                  objetivo: 'Sobrevivir',
+                  imagen: 'assets/roles/aldeano.png',
+                );
+
+            // Leyenda extra si ya fue revelado en la narración
+            final revelado = rolAsignado != null;
 
             return ListTile(
               leading: Image.asset(rol.imagen, width: 36, height: 36),
               title: Text(jugador),
-              subtitle: Text('Rol: ${rol.nombre}'),
+              subtitle: Text(
+                'Rol: ${rol.nombre}${revelado ? "." : ""}',
+              ),
             );
           }),
 
@@ -68,19 +88,16 @@ class RolesDrawer extends StatelessWidget {
 
               switch (rolNombre) {
                 case 'Cupido':
-                  // Esperamos: [cupido, pareja]
                   subtitle = lista.length >= 2
                       ? 'Vinculado: ${lista[0]} con ${lista[1]}'
                       : 'Vinculado: relación incompleta';
                   break;
                 case 'Niño Salvaje':
-                  // Esperamos: [niño, modelo]
                   subtitle = lista.length >= 2
                       ? 'Modelo: ${lista[0]} admira a ${lista[1]}'
                       : 'Modelo: relación incompleta';
                   break;
                 default:
-                  // Para roles genéricos o relaciones múltiples
                   subtitle = lista.join(' • ');
               }
 

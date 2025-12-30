@@ -2,20 +2,23 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../data/roles.dart';
-import '../roles/cupido.dart'; // CupidoFlow y helpers
+import '../roles/cupido.dart';
 import '../roles/nino_salvaje.dart';
+import '../roles/vidente.dart';
+import '../roles/lobos_comunes.dart';
 
 class MesaJugadores extends StatelessWidget {
   final List<String> jugadores;
   final Map<int, Rol> rolesAsignados;
   final String? rolActivo;
 
-  // Callback de asignación disparada al tocar un jugador
   final void Function(int, String)? onAsignarRolGenerico;
 
-  // Flujo de rol
   final CupidoFlow cupidoFlow;
   final NinoSalvajeFlow ninoFlow;
+  final VidenteFlow videnteFlow;
+  final LobosComunesFlow lobosFlow;
+  final int? alguacilIndex;
 
   const MesaJugadores({
     super.key,
@@ -25,6 +28,9 @@ class MesaJugadores extends StatelessWidget {
     this.onAsignarRolGenerico,
     required this.cupidoFlow,
     required this.ninoFlow,
+    required this.videnteFlow,
+    required this.lobosFlow,
+    this.alguacilIndex,
   });
 
   @override
@@ -34,7 +40,6 @@ class MesaJugadores extends StatelessWidget {
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
 
-        // Centro y radio relativos al espacio disponible
         final cx = width / 2;
         final cy = height / 2;
         final radius = math.min(width, height) * 0.38;
@@ -53,7 +58,6 @@ class MesaJugadores extends StatelessWidget {
   }
 
   Widget _buildJugador(int index, double cx, double cy, double r, int total) {
-    // Distribución circular (arranque por la izquierda)
     final startAngle = math.pi;
     final step = (2 * math.pi) / total;
     final angle = startAngle + step * index;
@@ -63,13 +67,37 @@ class MesaJugadores extends StatelessWidget {
     final y = cy + r * math.sin(angle) - avatarRadius;
 
     final nombre = jugadores[index];
-    final rol = rolesAsignados[index]?.nombre ?? 'Sin rol';
+    final rol = rolesAsignados[index];
 
     final isCupido = cupidoFlow.isCupido(index);
     final isEnamorado = cupidoFlow.isEnamorado(index);
 
     final isNino = ninoFlow.isNino(index);
     final isModelo = ninoFlow.isModelo(index);
+
+    final isVidente = videnteFlow.isVidente(index);
+
+    final esAlguacil = alguacilIndex == index;
+
+    // --- Avatar principal: SIEMPRE basado en rolesAsignados ---
+    Widget avatar;
+    if (rol != null && rol.imagen.isNotEmpty) {
+      avatar = Image.asset(
+        rol.imagen,
+        width: avatarRadius * 2,
+        height: avatarRadius * 2,
+        fit: BoxFit.cover,
+      );
+    } else {
+      avatar = CircleAvatar(
+        radius: avatarRadius,
+        backgroundColor: Colors.blueGrey,
+        child: Text(
+          nombre.isNotEmpty ? nombre[0].toUpperCase() : '?',
+          style: const TextStyle(color: Colors.white, fontSize: 20),
+        ),
+      );
+    }
 
     return Positioned(
       left: x,
@@ -83,53 +111,45 @@ class MesaJugadores extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Avatar/carta
+            // ... dentro de _buildJugador
             Stack(
               clipBehavior: Clip.none,
               children: [
-                // Carta completa si es Cupido; avatar normal si no
-                if (isCupido)
-                  Image.asset(
-                    'assets/roles/cupido.png',
-                    width: avatarRadius * 2, // ocupa el diámetro
-                    height: avatarRadius * 2,
-                    fit: BoxFit.cover,
-                  )
-                else if (isNino)
-                  Image.asset(
-                    'assets/roles/nino_salvaje.png',
-                    width: avatarRadius * 2,
-                    height: avatarRadius * 2,
-                    fit: BoxFit.cover,
-                  )
-                else
-                  CircleAvatar(
-                    radius: avatarRadius,
-                    backgroundColor: Colors.blueGrey,
-                    child: Text(
-                      nombre.isNotEmpty ? nombre[0].toUpperCase() : '?',
-                      style: const TextStyle(color: Colors.white, fontSize: 20),
-                    ),
-                  ),
-
-                // Badge pequeño para enamorados (no para Cupido)
+                avatar,
+                // Badges adicionales
                 if (!isCupido && isEnamorado)
                   Positioned(
                     right: -2,
                     top: -2,
                     child: Image.asset(
-                      'assets/roles/cupido.png',
+                      // usa el asset del rol Cupido
+                      rolesAsignados.values
+                          .firstWhere((r) => r.nombre == 'Cupido')
+                          .imagen,
                       width: 16,
                       height: 16,
                     ),
                   ),
-
                 if (!isNino && isModelo)
                   Positioned(
                     left: -2,
                     bottom: -2,
                     child: Image.asset(
-                      'assets/roles/nino_salvaje.png',
+                      // usa el asset del rol Niño Salvaje
+                      rolesAsignados.values
+                          .firstWhere((r) => r.nombre == 'Niño Salvaje')
+                          .imagen,
+                      width: 16,
+                      height: 16,
+                    ),
+                  ),
+
+                if (esAlguacil)
+                  Positioned(
+                    left: -2,
+                    top: -2,
+                    child: Image.asset(
+                      'assets/roles/alguacil.png',
                       width: 16,
                       height: 16,
                     ),
@@ -140,7 +160,7 @@ class MesaJugadores extends StatelessWidget {
             const SizedBox(height: 4),
             Text(nombre),
             Text(
-              rol,
+              rol?.nombre ?? 'Sin rol',
               style: const TextStyle(fontSize: 12, color: Colors.black54),
             ),
           ],

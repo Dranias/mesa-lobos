@@ -1,23 +1,39 @@
-// screens/mesa_screen.dart
 import 'package:flutter/material.dart';
 import '../data/roles.dart';
-import '../data/reglas.dart';
 import '../widgets/mesa_jugadores.dart';
 import '../widgets/narrador_card.dart';
 import '../widgets/roles_drawer.dart';
-import '../managers/roles_manager.dart';
 
+// Flujos especiales
 import '../roles/cupido.dart';
 import '../roles/nino_salvaje.dart';
+import '../roles/vidente.dart';
+import '../roles/lobos_comunes.dart';
+
+// Managers
+import '../managers/roles_manager.dart';
+
+// Reglas con alias
+import '../data/reglas_primera_noche.dart' as primera;
+import '../data/reglas_cada_noche.dart' as cada;
+import '../data/reglas_dia.dart' as dia;
+import '../data/reglas_al_morir.dart' as morir;
+
+// Phases
+import '../phases/primera_noche.dart';
+import '../phases/noche_aldea.dart';
+import '../phases/dia_aldea.dart';
 
 class MesaScreen extends StatefulWidget {
   final List<String> jugadores;
   final List<Rol?> rolesSeleccionados;
+  final int cantidadLobos;
 
   const MesaScreen({
     super.key,
     required this.jugadores,
     required this.rolesSeleccionados,
+    required this.cantidadLobos,
   });
 
   @override
@@ -27,14 +43,23 @@ class MesaScreen extends StatefulWidget {
 class _MesaScreenState extends State<MesaScreen> {
   int nocheActual = 1;
   int pasoActual = 0;
-  late List<Regla> secuencia;
+
+  // Usamos dynamic para que pueda contener reglas de cualquier módulo
+  late List<dynamic> secuencia;
 
   final Map<int, Rol> rolesAsignados = {};
   final Map<String, List<String>> relaciones = {};
+  final Set<int> jugadoresMuertos = {};
 
-  //Flujos especiales
+  bool esNoche = true;
+
+  // Flujos especiales
   CupidoFlow cupidoFlow = CupidoFlow.reset();
   NinoSalvajeFlow ninoFlow = NinoSalvajeFlow.reset();
+  VidenteFlow videnteFlow = VidenteFlow.reset();
+  LobosComunesFlow lobosFlow = LobosComunesFlow.reset();
+
+  int? alguacilIndex;
 
   @override
   void initState() {
@@ -50,19 +75,17 @@ class _MesaScreenState extends State<MesaScreen> {
   }
 
   void _generarSecuencia() {
-    final activos = widget.rolesSeleccionados
-        .where((r) => r != null)
-        .map((r) => r!.nombre)
-        .toList();
+    if (!esNoche) {
+      secuencia = dia.reglasDia;
+      pasoActual = 0;
+      return;
+    }
 
-    if (!activos.contains('Alguacil')) activos.add('Alguacil');
-
-    secuencia = reglas.where((r) {
-      if (!activos.contains(r.rol)) return false;
-      if (r.momento == 'primera_noche' && nocheActual == 1) return true;
-      if (r.momento == 'cada_noche') return true;
-      return false;
-    }).toList()..sort((a, b) => a.orden.compareTo(b.orden));
+    if (nocheActual == 1) {
+      secuencia = primera.reglasPrimeraNoche;
+    } else {
+      secuencia = cada.reglasCadaNoche;
+    }
 
     pasoActual = 0;
   }
@@ -72,90 +95,103 @@ class _MesaScreenState extends State<MesaScreen> {
       if (pasoActual < secuencia.length - 1) {
         pasoActual++;
       } else {
-        nocheActual++;
-        _generarSecuencia();
+        if (esNoche) {
+          if (lobosFlow.victimaIndex != null) {
+            _eliminarJugador(lobosFlow.victimaIndex!);
+          }
+          esNoche = false;
+          secuencia = dia.reglasDia;
+          pasoActual = 0;
+
+          DiaAldea.ejecutarDia(
+            context: context,
+            jugadores: widget.jugadores,
+            rolesAsignados: rolesAsignados,
+            jugadoresMuertos: jugadoresMuertos,
+            victimaDeLobos: lobosFlow.victimaIndex,
+            onLinchamiento: (index) {
+              _eliminarJugador(index);
+              setState(() {
+                esNoche = true;
+                nocheActual++;
+                _generarSecuencia();
+              });
+            },
+          );
+        } else {
+          nocheActual++;
+          esNoche = true;
+          _generarSecuencia();
+          pasoActual = 0;
+        }
       }
     });
   }
 
+  void _eliminarJugador(int indexVictima) {
+    final nombreVictima = widget.jugadores[indexVictima];
+    jugadoresMuertos.add(indexVictima);
+    relaciones.removeWhere((rol, lista) => lista.contains(nombreVictima));
+    lobosFlow = lobosFlow.copyWith(victimaIndex: null);
+  }
+
   void _asignarRolGenerico(int index, String nombreRol) {
     final reglaActual = secuencia.isNotEmpty ? secuencia[pasoActual] : null;
+    if (reglaActual == null) return;
 
     setState(() {
-      if (nombreRol == 'Cupido' && !cupidoFlow.cupidoAsignado) {
-        // Paso 1: despertar y asignar a Cupido
-        cupidoFlow = assignCupido(
+      if (nombreRol == 'Alguacil') {
+        alguacilIndex = index;
+      }
+
+      // --- Primera noche ---
+      if (esNoche && nocheActual == 1) {
+        PrimeraNoche.ejecutarPaso(
+          reglaActual: reglaActual,
           index: index,
           jugadores: widget.jugadores,
           rolesAsignados: rolesAsignados,
-          resolverRol: (nombre) =>
-              resolveRolByName(nombre, widget.rolesSeleccionados),
-          context: context,
-        );
-        return;
-      }
-
-      if (reglaActual?.rol == 'Cupido' &&
-          cupidoFlow.cupidoAsignado &&
-          !cupidoFlow.primerEnamoradoAsignado) {
-        // Paso 2: seleccionar primer enamorado
-        cupidoFlow = selectPrimerEnamorado(
-          index: index,
-          flow: cupidoFlow,
-          jugadores: widget.jugadores,
-          context: context,
-        );
-        return;
-      }
-
-      if (reglaActual?.rol == 'Cupido' &&
-          cupidoFlow.primerEnamoradoAsignado &&
-          !cupidoFlow.segundoEnamoradoAsignado) {
-        // Paso 3: seleccionar segundo enamorado
-        cupidoFlow = selectSegundoEnamorado(
-          index: index,
-          flow: cupidoFlow,
-          jugadores: widget.jugadores,
           relaciones: relaciones,
+          cupidoFlow: cupidoFlow,
+          ninoFlow: ninoFlow,
+          videnteFlow: videnteFlow,
+          lobosFlow: lobosFlow,
+          catalogo: widget.rolesSeleccionados,
           context: context,
+          updateCupido: (f) => cupidoFlow = f,
+          updateNino: (f) => ninoFlow = f,
+          updateVidente: (f) => videnteFlow = f,
+          updateLobos: (f) => lobosFlow = f,
         );
-        return;
       }
-
-      // NIÑO SALVAJE: dos pasos
-      if (nombreRol == 'Niño Salvaje' && !ninoFlow.ninoAsignado) {
-        ninoFlow = assignNinoSalvaje(
+      // --- Otras noches ---
+      else if (esNoche) {
+        NocheAldea.ejecutarPaso(
+          reglaActual: reglaActual,
           index: index,
           jugadores: widget.jugadores,
           rolesAsignados: rolesAsignados,
-          resolverRol: (nombre) =>
-              resolveRolByName(nombre, widget.rolesSeleccionados),
+          relaciones: relaciones,
+          videnteFlow: videnteFlow,
+          lobosFlow: lobosFlow,
+          catalogo: widget.rolesSeleccionados,
           context: context,
+          updateVidente: (f) => videnteFlow = f,
+          updateLobos: (f) => lobosFlow = f,
         );
-        return;
       }
-      if (reglaActual?.rol == 'Niño Salvaje' &&
-          ninoFlow.ninoAsignado &&
-          !ninoFlow.modeloAsignado) {
-        ninoFlow = selectModelo(
+      // --- Día ---
+      else {
+        DiaAldea.ejecutarPaso(
+          reglaActual: reglaActual,
           index: index,
-          flow: ninoFlow,
           jugadores: widget.jugadores,
+          rolesAsignados: rolesAsignados,
+          jugadoresMuertos: jugadoresMuertos,
           relaciones: relaciones,
           context: context,
         );
-        return;
       }
-
-      // Otros roles (si aplica)
-      assignGenericRole(
-        index: index,
-        nombreRol: nombreRol,
-        jugadores: widget.jugadores,
-        rolesAsignados: rolesAsignados,
-        catalogo: widget.rolesSeleccionados,
-        context: context,
-      );
     });
   }
 
@@ -169,6 +205,7 @@ class _MesaScreenState extends State<MesaScreen> {
         rolesAsignados: rolesAsignados,
         relaciones: relaciones,
         jugadores: widget.jugadores,
+        rolesIniciales: widget.rolesSeleccionados,
       ),
       body: Column(
         children: [
@@ -180,9 +217,11 @@ class _MesaScreenState extends State<MesaScreen> {
               onAsignarRolGenerico: _asignarRolGenerico,
               cupidoFlow: cupidoFlow,
               ninoFlow: ninoFlow,
+              videnteFlow: videnteFlow,
+              lobosFlow: lobosFlow,
+              alguacilIndex: alguacilIndex,
             ),
           ),
-
           if (reglaActual != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -195,8 +234,13 @@ class _MesaScreenState extends State<MesaScreen> {
                   cupidoAsignado: cupidoFlow.cupidoAsignado,
                   primerEnamoradoAsignado: cupidoFlow.primerEnamoradoAsignado,
                   segundoEnamoradoAsignado: cupidoFlow.segundoEnamoradoAsignado,
-                  ninoAsignado: ninoFlow.ninoAsignado, 
+                  ninoAsignado: ninoFlow.ninoAsignado,
                   modeloAsignado: ninoFlow.modeloAsignado,
+                  videnteAsignada: videnteFlow.videnteAsignada,
+                  objetivoAsignado: videnteFlow.objetivoAsignado,
+                  cantidadLobos: widget.cantidadLobos,
+                  lobosSeleccionados: lobosFlow.lobosIndices.length,
+                  victimaAsignada: lobosFlow.victimaIndex != null,
                   onNext: _siguientePaso,
                 ),
               ),

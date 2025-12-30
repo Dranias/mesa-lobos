@@ -1,0 +1,25 @@
+class Regla {
+  final String rol;
+  final String momento;
+  final int orden;
+  final String frecuencia;
+  final String? condicion;
+
+  const Regla({
+    required this.rol,
+    required this.momento,
+    required this.orden,
+    required this.frecuencia,
+    this.condicion,
+  });
+}
+
+const List<Regla> reglasDia = [
+  Regla(
+    rol: 'Alguacil',
+    momento: 'al_dia',
+    orden: 1,
+    frecuencia: 'repetido',
+    condicion: 'Sus votos cuentan doble',
+  ),
+];

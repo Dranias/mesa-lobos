@@ -147,6 +147,12 @@ class _SeleccionRolesScreenState extends State<SeleccionRolesScreen> {
     });
   }
 
+  int get cantidadLobosSeleccionados {
+    return _rolesSeleccionados
+        .where((rol) => rol?.nombre == 'Hombres Lobo Comunes')
+        .length;
+  }
+
   Future<void> _abrirSelectorRol(int index) async {
     final seleccionado = await showModalBottomSheet<Rol?>(
       context: context,
@@ -209,6 +215,7 @@ class _SeleccionRolesScreenState extends State<SeleccionRolesScreen> {
         builder: (context) => MesaScreen(
           jugadores: widget.jugadores,
           rolesSeleccionados: _rolesSeleccionados,
+          cantidadLobos: cantidadLobosSeleccionados,
         ),
       ),
     );
@@ -254,15 +261,13 @@ class _SeleccionRolesScreenState extends State<SeleccionRolesScreen> {
           // Grid de botones de rol (cada botón abre el modal de selección)
           Expanded(
             child: GridView.builder(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
-                crossAxisSpacing: 4, // menos separación horizontal
-                mainAxisSpacing: 4, // menos separación vertical
-                childAspectRatio:
-                    1.2, // más ancho que alto → menos espacio entre filas
+                crossAxisSpacing: 4,
+                mainAxisSpacing: 4,
+                childAspectRatio: 0.85,
               ),
-
               itemCount: _numRoles,
               itemBuilder: (context, index) {
                 final rol = _rolesSeleccionados[index];
@@ -272,17 +277,15 @@ class _SeleccionRolesScreenState extends State<SeleccionRolesScreen> {
                 return GestureDetector(
                   onTap: () => _abrirSelectorRol(index),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // La imagen es el botón
                       Image.asset(
                         imagen,
-                        width: 70, // antes 80
-                        height: 70, // antes 80
+                        width: 84,
+                        height: 84,
                         fit: BoxFit.contain,
                       ),
-
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
                         nombre,
                         textAlign: TextAlign.center,

@@ -16,21 +16,25 @@ final List<Rol> roles = [
   Rol(
     nombre: 'Hombres Lobo Comunes',
     descripcion:
-        'Cada noche devoran a un aldeano.\nHay 4 Hombres Lobo Comunes en total.',
+        'Cada noche devoran a un aldeano.\n',
     objetivo: 'Matar al resto de habitantes de la aldea.',
     imagen: 'assets/roles/lobo_comun.png',
   ),
   Rol(
     nombre: 'Lobo Feroz',
     descripcion:
-        'Devora junto a los lobos y puede atacar una segunda vez si no han muerto lobos.',
+        'Devora junto a los lobos y puede atacar una segunda vez si no han muerto Lobos, Niño Salvaje o Perro Lobo.',
     objetivo: 'Matar al resto de habitantes de la aldea.',
     imagen: 'assets/roles/lobo_feroz.png',
   ),
   Rol(
     nombre: 'Infecto Padre de todos los Lobos',
     descripcion:
-        'Puede infectar a un jugador una vez por partida, convirtiéndolo en lobo.',
+        'Cada noche despierta y devora a un aldeano junto a los demás Hombres Lobo.\n'
+        'Pero la noche que él decida, después de que los Hombres Lobo se vayan a dormir, él levantará la mano.\n'
+        'Esto significa que la víctima no ha muerto, sino que ha sido infectada.\n'
+        '- Sólo puede utilizar el poder una vez por partida. El narrador tocará al infectado, que jugará desde ese momento como Hombre Lobo.'
+        '- Si el infectado tiene un poder especial, podrá seguir usándolo normalmente, además de ser un Hombre Lobo.',
     objetivo: 'Matar al resto de habitantes de la aldea.',
     imagen: 'assets/roles/infecto_padre.png',
   ),
@@ -84,15 +88,6 @@ final List<Rol> roles = [
         'Puede espiar a los lobos entreabriendo los ojos. Si la descubren, muere en silencio.',
     objetivo: 'Matar a todos los Hombres Lobo.',
     imagen: 'assets/roles/nina_pequena.png',
-  ),
-  Rol(
-    nombre: 'El Alguacil',
-    descripcion:
-        'Es un cargo público que se entrega a un jugador por votación.\n Los votos del Alguacil cuentan el doble.\n'
-    '- No se puede rechazar el cargo.\n'
-    '-Al morir, se nombra a otro jugador como sucesor.',
-    objetivo: 'Matar a todos los Hombres Lobo..',
-    imagen: 'assets/roles/alguacil.png',
   ),
   Rol(
     nombre: 'Protector',
@@ -264,3 +259,13 @@ final List<Rol> roles = [
     imagen: 'assets/roles/sectario.png',
   ),
 ];
+
+/*Rol(
+    nombre: 'El Alguacil',
+    descripcion:
+        'Es un cargo público que se entrega a un jugador por votación.\n Los votos del Alguacil cuentan el doble.\n'
+    '- No se puede rechazar el cargo.\n'
+    '-Al morir, se nombra a otro jugador como sucesor.',
+    objetivo: 'Matar a todos los Hombres Lobo..',
+    imagen: 'assets/roles/alguacil.png',
+  ),*/
