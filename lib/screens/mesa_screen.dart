@@ -26,6 +26,14 @@ class MesaScreen extends StatefulWidget {
 }
 
 class _MesaScreenState extends State<MesaScreen> {
+  bool _esRolDeLobo(String rol) {
+    return rol == 'Hombres Lobo Comunes' ||
+        rol == 'Lobo Feroz' ||
+        rol == 'Infecto Padre de todos los Lobos' ||
+        rol == 'Hombre Lobo Albino' ||
+        rol == 'Perro Lobo';
+  }
+
   int nocheActual = 1;
   int pasoActual = 0;
   late List<Regla> secuencia;
@@ -37,13 +45,19 @@ class _MesaScreenState extends State<MesaScreen> {
   CupidoFlow cupidoFlow = CupidoFlow.reset();
   NinoSalvajeFlow ninoFlow = NinoSalvajeFlow.reset();
 
+  // Vidente
+  bool videnteAsignada = false;
+  int? videnteObjetivoIndex;
+
   // Número máximo de lobos según selección inicial
   late int maxLobos;
 
   @override
   void initState() {
     super.initState();
-    maxLobos = widget.rolesSeleccionados.where((r) => r?.nombre == 'Lobo Feroz').length;
+    maxLobos = widget.rolesSeleccionados
+        .where((r) => r?.nombre == 'Lobo Feroz')
+        .length;
     _generarSecuencia();
   }
 
@@ -60,15 +74,12 @@ class _MesaScreenState extends State<MesaScreen> {
       if (r.momento == 'primera_noche' && nocheActual == 1) return true;
       if (r.momento == 'cada_noche') return true;
       return false;
-    }).toList()
-      ..sort((a, b) => a.orden.compareTo(b.orden));
+    }).toList()..sort((a, b) => a.orden.compareTo(b.orden));
 
     pasoActual = 0;
-    // ⚠️ No reseteamos Cupido/Niño aquí, porque deben persistir toda la partida
   }
 
   void _finalizarAsignacionLobos() {
-    // Asignar Aldeanos a todos los que no tengan rol
     for (int i = 0; i < widget.jugadores.length; i++) {
       if (rolesAsignados[i] == null) {
         final aldeano = resolveRolByName('Aldeano', widget.rolesSeleccionados);
@@ -83,19 +94,20 @@ class _MesaScreenState extends State<MesaScreen> {
         pasoActual++;
         final regla = secuencia[pasoActual];
 
-        // ⚠️ Cupido y Niño Salvaje solo se asignan en la primera noche
+        // Cupido y Niño Salvaje solo en primera noche
         if (nocheActual > 1) {
-          if (regla.rol == 'Cupido') {
-            // saltar paso, ya no se repite
-            pasoActual++;
-          }
-          if (regla.rol == 'Niño Salvaje') {
-            pasoActual++;
-          }
+          if (regla.rol == 'Cupido') pasoActual++;
+          if (regla.rol == 'Niño Salvaje') pasoActual++;
         }
 
-        // Si acabamos de pasar por Lobos, asignar aldeanos
-        if (regla.rol == 'Lobo Feroz') {
+        // Reset de Vidente cada noche
+        if (regla.rol != 'Vidente') {
+          videnteAsignada = false;
+          videnteObjetivoIndex = null;
+        }
+
+        // Al terminar asignación inicial de Hombres Lobo, convertir resto en Aldeanos
+        if (_esRolDeLobo(regla.rol)) {
           _finalizarAsignacionLobos();
         }
       } else {
@@ -105,23 +117,24 @@ class _MesaScreenState extends State<MesaScreen> {
     });
   }
 
-  // Callbacks para MesaJugadores
+  // Callbacks
   void _asignarCupido(int index) {
-    if (nocheActual > 1 || cupidoFlow.cupidoAsignado) return; // solo primera noche
+    if (nocheActual > 1 || cupidoFlow.cupidoAsignado) return;
     setState(() {
       cupidoFlow = assignCupido(
         index: index,
         jugadores: widget.jugadores,
         rolesAsignados: rolesAsignados,
         relaciones: relaciones,
-        resolverRol: (nombre) => resolveRolByName(nombre, widget.rolesSeleccionados),
+        resolverRol: (nombre) =>
+            resolveRolByName(nombre, widget.rolesSeleccionados),
         context: context,
       );
     });
   }
 
   void _seleccionarPareja(int index) {
-    if (nocheActual > 1 || cupidoFlow.parejaAsignada) return; // solo primera noche
+    if (nocheActual > 1 || cupidoFlow.parejaAsignada) return;
     setState(() {
       cupidoFlow = selectPareja(
         index: index,
@@ -134,21 +147,22 @@ class _MesaScreenState extends State<MesaScreen> {
   }
 
   void _asignarNinoSalvaje(int index) {
-    if (nocheActual > 1 || ninoFlow.ninoAsignado) return; // solo primera noche
+    if (nocheActual > 1 || ninoFlow.ninoAsignado) return;
     setState(() {
       ninoFlow = assignNinoSalvaje(
         index: index,
         jugadores: widget.jugadores,
         rolesAsignados: rolesAsignados,
         relaciones: relaciones,
-        resolverRol: (nombre) => resolveRolByName(nombre, widget.rolesSeleccionados),
+        resolverRol: (nombre) =>
+            resolveRolByName(nombre, widget.rolesSeleccionados),
         context: context,
       );
     });
   }
 
   void _seleccionarModelo(int index) {
-    if (nocheActual > 1 || ninoFlow.modeloAsignado) return; // solo primera noche
+    if (nocheActual > 1 || ninoFlow.modeloAsignado) return;
     setState(() {
       ninoFlow = selectModelo(
         index: index,
@@ -160,19 +174,48 @@ class _MesaScreenState extends State<MesaScreen> {
     });
   }
 
+  void _asignarVidente(int index) {
+    if (videnteAsignada) return;
+    if (rolesAsignados[index] != null) return;
+
+    setState(() {
+      // Asignar el rol de Vidente al jugador
+      final videnteRol = resolveRolByName('Vidente', widget.rolesSeleccionados);
+      rolesAsignados[index] = videnteRol;
+
+      // Guardar a quién observa en esta noche
+      videnteObjetivoIndex = index;
+      videnteAsignada = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'La Vidente se asigna a ${widget.jugadores[index]} y observa su carta',
+        ),
+      ),
+    );
+  }
+
   void _asignarRolGenerico(int index, String nombreRol) {
     setState(() {
-      // Caso especial: Lobos
       if (nombreRol == 'Lobo Feroz') {
-        final count = rolesAsignados.values.where((r) => r.nombre == 'Lobo Feroz').length;
+        final count = rolesAsignados.values
+            .where((r) => r.nombre == 'Lobo Feroz')
+            .length;
         if (count >= maxLobos) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ya se asignaron todos los Lobos Feroz')),
+            const SnackBar(
+              content: Text('Ya se asignaron todos los Lobos Feroz'),
+            ),
           );
           return;
         }
       }
-
+      if (nombreRol == 'Vidente') {
+        _asignarVidente(index);
+        return;
+      }
       assignGenericRole(
         index: index,
         nombreRol: nombreRol,
@@ -197,18 +240,6 @@ class _MesaScreenState extends State<MesaScreen> {
       ),
       body: Column(
         children: [
-          if (reglaActual != null)
-            NarradorCard(
-              nocheActual: nocheActual,
-              pasoActual: pasoActual,
-              totalPasos: secuencia.length,
-              rolActivo: reglaActual.rol,
-              cupidoAsignado: cupidoFlow.cupidoAsignado,
-              parejaAsignada: cupidoFlow.parejaAsignada,
-              ninoSalvajeAsignado: ninoFlow.ninoAsignado,
-              modeloAsignado: ninoFlow.modeloAsignado,
-              onNext: _siguientePaso,
-            ),
           Expanded(
             child: MesaJugadores(
               jugadores: widget.jugadores,
@@ -229,6 +260,24 @@ class _MesaScreenState extends State<MesaScreen> {
               onAsignarRolGenerico: _asignarRolGenerico,
             ),
           ),
+          if (reglaActual != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: NarradorCard(
+                  nocheActual: nocheActual,
+                  pasoActual: pasoActual,
+                  totalPasos: secuencia.length,
+                  rolActivo: reglaActual.rol,
+                  cupidoAsignado: cupidoFlow.cupidoAsignado,
+                  parejaAsignada: cupidoFlow.parejaAsignada,
+                  ninoSalvajeAsignado: ninoFlow.ninoAsignado,
+                  modeloAsignado: ninoFlow.modeloAsignado,
+                  onNext: _siguientePaso,
+                ),
+              ),
+            ),
         ],
       ),
     );

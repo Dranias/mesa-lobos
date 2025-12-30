@@ -39,7 +39,9 @@ class _ConfiguracionJugadoresScreenState
 
     if (jugadores.length < _minJugadores) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Debes ingresar al menos $_minJugadores jugadores')),
+        SnackBar(
+          content: Text('Debes ingresar al menos $_minJugadores jugadores'),
+        ),
       );
       return;
     }
@@ -95,7 +97,9 @@ class _ConfiguracionJugadoresScreenState
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: jugadoresIngresados >= _minJugadores ? _continuar : null,
+                    onPressed: jugadoresIngresados >= _minJugadores
+                        ? _continuar
+                        : null,
                     icon: const Icon(Icons.arrow_forward),
                     label: const Text('Continuar'),
                   ),
@@ -137,7 +141,9 @@ class _SeleccionRolesScreenState extends State<SeleccionRolesScreen> {
       _numRoles = nuevo;
       // Reajustar lista manteniendo selecciones existentes hasta donde se pueda
       if (_rolesSeleccionados.length < _numRoles) {
-        _rolesSeleccionados.addAll(List<Rol?>.filled(_numRoles - _rolesSeleccionados.length, null));
+        _rolesSeleccionados.addAll(
+          List<Rol?>.filled(_numRoles - _rolesSeleccionados.length, null),
+        );
       } else if (_rolesSeleccionados.length > _numRoles) {
         _rolesSeleccionados = _rolesSeleccionados.sublist(0, _numRoles);
       }
@@ -168,7 +174,11 @@ class _SeleccionRolesScreenState extends State<SeleccionRolesScreen> {
                     itemBuilder: (context, i) {
                       final rol = roles[i];
                       return ListTile(
-                        leading: Image.asset(rol.imagen, width: 36, height: 36),
+                        leading: Image.asset(
+                          rol.imagen,
+                          width: 100,
+                          height: 100,
+                        ),
                         title: Text(rol.nombre),
                         subtitle: Text(
                           rol.objetivo,
@@ -259,16 +269,19 @@ class _SeleccionRolesScreenState extends State<SeleccionRolesScreen> {
                 final imagen = rol?.imagen ?? 'assets/roles/aldeano.png';
                 final nombre = rol?.nombre ?? 'Aldeano';
 
-                return OutlinedButton(
-                  onPressed: () => _abrirSelectorRol(index),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                  ),
+                return GestureDetector(
+                  onTap: () => _abrirSelectorRol(index),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(imagen, width: 48, height: 48),
-                      const SizedBox(height: 8),
+                      // La imagen es el botón
+                      Image.asset(
+                        imagen,
+                        width: 100, // tamaño más grande
+                        height: 100,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 6),
                       Text(
                         nombre,
                         textAlign: TextAlign.center,
