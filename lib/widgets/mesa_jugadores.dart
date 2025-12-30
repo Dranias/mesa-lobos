@@ -1,183 +1,151 @@
-import 'dart:math';
+// widgets/mesa_jugadores.dart
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import '../data/roles.dart';
+import '../roles/cupido.dart'; // CupidoFlow y helpers
+import '../roles/nino_salvaje.dart';
 
-/// Muestra a los jugadores en círculo y maneja las selecciones según el rol que “despierta”.
-/// No contiene lógica de negocio: delega en callbacks para Cupido, Niño Salvaje y roles genéricos.
 class MesaJugadores extends StatelessWidget {
   final List<String> jugadores;
   final Map<int, Rol> rolesAsignados;
-
-  // Rol que está activo en el paso actual de la narración (ej. 'Cupido', 'Niño Salvaje', 'Lobo Feroz', etc.)
   final String? rolActivo;
 
-  // Estado visual para Cupido
-  final int? cupidoIndex;
-  final int? parejaIndex;
-  final bool cupidoAsignado;
-  final bool parejaAsignada;
+  // Callback de asignación disparada al tocar un jugador
+  final void Function(int, String)? onAsignarRolGenerico;
 
-  // Estado visual para Niño Salvaje
-  final int? ninoSalvajeIndex;
-  final int? modeloIndex;
-  final bool ninoSalvajeAsignado;
-  final bool modeloAsignado;
-
-  // Callbacks de negocio (implementados en mesa_screen usando managers)
-  final void Function(int index) onAsignarCupido;
-  final void Function(int index) onSeleccionarPareja;
-  final void Function(int index) onAsignarNino;
-  final void Function(int index) onSeleccionarModelo;
-  final void Function(int index, String nombreRol) onAsignarRolGenerico;
+  // Flujo de rol
+  final CupidoFlow cupidoFlow;
+  final NinoSalvajeFlow ninoFlow;
 
   const MesaJugadores({
     super.key,
     required this.jugadores,
     required this.rolesAsignados,
     required this.rolActivo,
-    required this.cupidoIndex,
-    required this.parejaIndex,
-    required this.cupidoAsignado,
-    required this.parejaAsignada,
-    required this.ninoSalvajeIndex,
-    required this.modeloIndex,
-    required this.ninoSalvajeAsignado,
-    required this.modeloAsignado,
-    required this.onAsignarCupido,
-    required this.onSeleccionarPareja,
-    required this.onAsignarNino,
-    required this.onSeleccionarModelo,
-    required this.onAsignarRolGenerico,
+    this.onAsignarRolGenerico,
+    required this.cupidoFlow,
+    required this.ninoFlow,
   });
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final centerX = constraints.maxWidth / 2;
-        final centerY = constraints.maxHeight / 2;
-        final radius = min(centerX, centerY) - 90; // margen para cartas
+        final width = constraints.maxWidth;
+        final height = constraints.maxHeight;
 
-        return Stack(
-          children: List.generate(jugadores.length, (index) {
-            final jugador = jugadores[index];
-            final rolAsignado = rolesAsignados[index];
+        // Centro y radio relativos al espacio disponible
+        final cx = width / 2;
+        final cy = height / 2;
+        final radius = math.min(width, height) * 0.38;
 
-            // posición en círculo (empezando arriba)
-            final angle = -pi / 2 + (2 * pi / jugadores.length) * index;
-            final dx = centerX + radius * cos(angle);
-            final dy = centerY + radius * sin(angle);
-
-            return Positioned(
-              left: dx - 45,
-              top: dy - 60,
-              child: GestureDetector(
-                onTap: () {
-                  if (rolActivo == null) return;
-
-                  // Flujo especial: Cupido (selección única: Cupido y luego su pareja)
-                  if (rolActivo == 'Cupido') {
-                    if (!cupidoAsignado) {
-                      onAsignarCupido(index);
-                    } else if (!parejaAsignada) {
-                      onSeleccionarPareja(index);
-                    }
-                    return;
-                  }
-
-                  // Flujo especial: Niño Salvaje (selección única: Niño y luego su modelo)
-                  if (rolActivo == 'Niño Salvaje') {
-                    if (!ninoSalvajeAsignado) {
-                      onAsignarNino(index);
-                    } else if (!modeloAsignado) {
-                      onSeleccionarModelo(index);
-                    }
-                    return;
-                  }
-
-                  // Roles genéricos: asignar si aún no tiene rol
-                  if (rolAsignado == null) {
-                    onAsignarRolGenerico(index, rolActivo!);
-                  }
-                },
-                child: Column(
-                  children: [
-                    Stack(
-                      alignment: Alignment.topRight,
-                      children: [
-                        Image.asset(
-                          rolAsignado != null
-                              ? rolAsignado.imagen
-                              : 'assets/roles/carta.png',
-                          width: 70,
-                          height: 100,
-                        ),
-
-                        // Overlay para señalar al Cupido y su pareja (opcional y visual)
-                        if (index == cupidoIndex)
-                          Image.asset(
-                            'assets/roles/cupido.png',
-                            width: 28,
-                            height: 28,
-                          ),
-                        if (index == parejaIndex)
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            child: Image.asset(
-                              'assets/roles/cupido.png',
-                              width: 24,
-                              height: 24,
-                            ),
-                          ),
-
-                        // Overlay para Niño Salvaje y su modelo (opcional y visual)
-                        if (index == ninoSalvajeIndex)
-                          Image.asset(
-                            'assets/roles/nino_salvaje.png',
-                            width: 28,
-                            height: 28,
-                          ),
-                        if (index == modeloIndex)
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            child: Image.asset(
-                              'assets/roles/nino_salvaje.png',
-                              width: 24,
-                              height: 24,
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      width: 90,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        jugador,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
+        return SizedBox.expand(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              for (int i = 0; i < jugadores.length; i++)
+                _buildJugador(i, cx, cy, radius, jugadores.length),
+            ],
+          ),
         );
       },
+    );
+  }
+
+  Widget _buildJugador(int index, double cx, double cy, double r, int total) {
+    // Distribución circular (arranque por la izquierda)
+    final startAngle = math.pi;
+    final step = (2 * math.pi) / total;
+    final angle = startAngle + step * index;
+
+    const avatarRadius = 28.0;
+    final x = cx + r * math.cos(angle) - avatarRadius;
+    final y = cy + r * math.sin(angle) - avatarRadius;
+
+    final nombre = jugadores[index];
+    final rol = rolesAsignados[index]?.nombre ?? 'Sin rol';
+
+    final isCupido = cupidoFlow.isCupido(index);
+    final isEnamorado = cupidoFlow.isEnamorado(index);
+
+    final isNino = ninoFlow.isNino(index);
+    final isModelo = ninoFlow.isModelo(index);
+
+    return Positioned(
+      left: x,
+      top: y,
+      child: GestureDetector(
+        onTap: () {
+          if (rolActivo != null) {
+            onAsignarRolGenerico?.call(index, rolActivo!);
+          }
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Avatar/carta
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Carta completa si es Cupido; avatar normal si no
+                if (isCupido)
+                  Image.asset(
+                    'assets/roles/cupido.png',
+                    width: avatarRadius * 2, // ocupa el diámetro
+                    height: avatarRadius * 2,
+                    fit: BoxFit.cover,
+                  )
+                else if (isNino)
+                  Image.asset(
+                    'assets/roles/nino_salvaje.png',
+                    width: avatarRadius * 2,
+                    height: avatarRadius * 2,
+                    fit: BoxFit.cover,
+                  )
+                else
+                  CircleAvatar(
+                    radius: avatarRadius,
+                    backgroundColor: Colors.blueGrey,
+                    child: Text(
+                      nombre.isNotEmpty ? nombre[0].toUpperCase() : '?',
+                      style: const TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                  ),
+
+                // Badge pequeño para enamorados (no para Cupido)
+                if (!isCupido && isEnamorado)
+                  Positioned(
+                    right: -2,
+                    top: -2,
+                    child: Image.asset(
+                      'assets/roles/cupido.png',
+                      width: 16,
+                      height: 16,
+                    ),
+                  ),
+
+                if (!isNino && isModelo)
+                  Positioned(
+                    left: -2,
+                    bottom: -2,
+                    child: Image.asset(
+                      'assets/roles/nino_salvaje.png',
+                      width: 16,
+                      height: 16,
+                    ),
+                  ),
+              ],
+            ),
+
+            const SizedBox(height: 4),
+            Text(nombre),
+            Text(
+              rol,
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

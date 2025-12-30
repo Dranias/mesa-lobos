@@ -1,6 +1,6 @@
 // screens/configuracion_jugadores.dart
 import 'package:flutter/material.dart';
-import 'mesa_screen.dart';
+import '../screens/mesa_screen.dart';
 import '../data/roles.dart';
 
 /// Pantalla 1: nombres de jugadores (mínimo 6), con opción para agregar más
@@ -56,10 +56,7 @@ class _ConfiguracionJugadoresScreenState
 
   @override
   Widget build(BuildContext context) {
-    final jugadoresIngresados = _controllers
-        .map((c) => c.text.trim())
-        .where((nombre) => nombre.isNotEmpty)
-        .length;
+    final jugadoresIngresados = _controllers.length;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Jugadores')),
@@ -260,9 +257,12 @@ class _SeleccionRolesScreenState extends State<SeleccionRolesScreen> {
               padding: const EdgeInsets.all(12),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                crossAxisSpacing: 4, // menos separación horizontal
+                mainAxisSpacing: 4, // menos separación vertical
+                childAspectRatio:
+                    1.2, // más ancho que alto → menos espacio entre filas
               ),
+
               itemCount: _numRoles,
               itemBuilder: (context, index) {
                 final rol = _rolesSeleccionados[index];
@@ -277,10 +277,11 @@ class _SeleccionRolesScreenState extends State<SeleccionRolesScreen> {
                       // La imagen es el botón
                       Image.asset(
                         imagen,
-                        width: 100, // tamaño más grande
-                        height: 100,
+                        width: 70, // antes 80
+                        height: 70, // antes 80
                         fit: BoxFit.contain,
                       ),
+
                       const SizedBox(height: 6),
                       Text(
                         nombre,

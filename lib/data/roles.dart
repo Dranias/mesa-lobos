@@ -57,7 +57,11 @@ final List<Rol> roles = [
   Rol(
     nombre: 'Cupido',
     descripcion:
-        'Designa a dos jugadores como enamorados. Si uno muere, el otro también.',
+        'Despierta la primera noche y designa a dos jugadores los cuales quedarán enamorados durante toda la partida.\n'
+        '-Puede designarse a si mismo como uno de los enamorados.\n'
+        '-Si uno de los enamorados muere, el otro muere de pena inmediatamente después.\n'
+        'Un enamorado nunca puede votar en contra de su pareja (ni siquiera para despistar)\n'
+        'Si uno de los enamorados es un Aldeano y el otro un Hombre Lobo o Flautista, el objetivo para ambos cambia. Ahora deberán eliminar a los demas jugadores para ganar\n',
     objetivo: 'Matar a todos los Hombres Lobo.',
     imagen: 'assets/roles/cupido.png',
   ),

@@ -8,17 +8,17 @@ class NarradorCard extends StatelessWidget {
   final int nocheActual;
   final int pasoActual;
   final int totalPasos;
-  final String? rolActivo;
+  final String rolActivo;
 
-  // Estado de Cupido
+  //Cupido
   final bool cupidoAsignado;
-  final bool parejaAsignada;
+  final bool primerEnamoradoAsignado;
+  final bool segundoEnamoradoAsignado;
 
-  // Estado de Niño Salvaje
-  final bool ninoSalvajeAsignado;
+  //Niño Salvaje
+  final bool ninoAsignado;
   final bool modeloAsignado;
 
-  // Acción al avanzar
   final VoidCallback onNext;
 
   const NarradorCard({
@@ -28,76 +28,63 @@ class NarradorCard extends StatelessWidget {
     required this.totalPasos,
     required this.rolActivo,
     required this.cupidoAsignado,
-    required this.parejaAsignada,
-    required this.ninoSalvajeAsignado,
+    required this.primerEnamoradoAsignado,
+    required this.segundoEnamoradoAsignado,
+    required this.ninoAsignado,
     required this.modeloAsignado,
     required this.onNext,
   });
 
   bool get _bloquearNext {
-    // Cupido: requiere elegir Cupido y luego su pareja (una sola vez).
-    final bloqueCupido = (rolActivo == 'Cupido') && (!cupidoAsignado || !parejaAsignada);
-    // Niño Salvaje: requiere elegir Niño y luego su modelo (una sola vez).
-    final bloqueNino = (rolActivo == 'Niño Salvaje') && (!ninoSalvajeAsignado || !modeloAsignado);
-    return bloqueCupido || bloqueNino;
+    if (rolActivo == 'Cupido') {
+      return !cupidoAsignado ||
+          !primerEnamoradoAsignado ||
+          !segundoEnamoradoAsignado;
+    }
+    if (rolActivo == 'Niño Salvaje') {
+      return !ninoAsignado || !modeloAsignado;
+    }
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.all(12),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text(
-              'Noche $nocheActual',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Paso ${pasoActual + 1} de $totalPasos',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 12),
-            if (rolActivo != null)
-              Text(
-                'Despierta: $rolActivo',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple,
-                ),
-              ),
+            Text('Noche $nocheActual'),
+            Text('Paso ${pasoActual + 1} de $totalPasos'),
+            Text('Despierta: $rolActivo'),
 
-            // Instrucciones dinámicas
-            const SizedBox(height: 8),
+            //Texto para cupido
             if (rolActivo == 'Cupido' && !cupidoAsignado)
               const Text(
-                'Selecciona quién será Cupido',
-                style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+                'Cupido despierta y se revela (Selecciona al jugador que será cupido)',
               ),
-            if (rolActivo == 'Cupido' && cupidoAsignado && !parejaAsignada)
-              const Text(
-                'Selecciona con quién se vincula Cupido',
-                style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
-              ),
-            if (rolActivo == 'Niño Salvaje' && !ninoSalvajeAsignado)
-              const Text(
-                'Selecciona quién será el Niño Salvaje',
-                style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
-              ),
-            if (rolActivo == 'Niño Salvaje' && ninoSalvajeAsignado && !modeloAsignado)
-              const Text(
-                'Selecciona a quién admira el Niño Salvaje',
-                style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
-              ),
+            if (rolActivo == 'Cupido' &&
+                cupidoAsignado &&
+                !primerEnamoradoAsignado)
+              const Text('Cupido selecciona al primer enamorado'),
+            if (rolActivo == 'Cupido' &&
+                primerEnamoradoAsignado &&
+                !segundoEnamoradoAsignado)
+              const Text('Cupido selecciona al segundo enamorado'),
 
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
+            //Texto para niño salvaje
+            if (rolActivo == 'Niño Salvaje' && !ninoAsignado)
+              const Text(
+                'El Niño Salvaje despierta y se revela (Selecciona al jugador que será el Niño Salvaje)',
+              ),
+            if (rolActivo == 'Niño Salvaje' && ninoAsignado && !modeloAsignado)
+              const Text('El Niño Salvaje elige a un modelo a seguir'),
+
+            ElevatedButton(
               onPressed: _bloquearNext ? null : onNext,
-              icon: const Icon(Icons.navigate_next),
-              label: Text(pasoActual < totalPasos - 1 ? 'Siguiente' : 'Amanece'),
+              child: Text(
+                pasoActual < totalPasos - 1 ? 'Siguiente' : 'Amanece',
+              ),
             ),
           ],
         ),

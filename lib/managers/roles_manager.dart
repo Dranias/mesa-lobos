@@ -15,7 +15,10 @@ String _fallbackImageFromName(String nombre) {
 /// Busca y devuelve el Rol por nombre dentro del catálogo (rolesSeleccionados).
 /// Si no existe (p. ej. Alguacil), crea un Rol básico con su imagen por convención.
 Rol resolveRolByName(String nombre, List<Rol?> catalogo) {
-  final match = catalogo.where((r) => r != null && r!.nombre == nombre).map((r) => r!).toList();
+  final match = catalogo
+      .where((r) => r != null && r!.nombre == nombre)
+      .map((r) => r!)
+      .toList();
   if (match.isNotEmpty) return match.first;
 
   return Rol(
@@ -32,7 +35,11 @@ int countAssignedRole(Map<int, Rol> rolesAsignados, String nombreRol) {
 }
 
 /// Verifica si aún se puede asignar el rol según sus límites configurados.
-bool canAssignRole(String nombreRol, Map<int, Rol> rolesAsignados, {Map<String, int> roleLimits = kRoleLimits}) {
+bool canAssignRole(
+  String nombreRol,
+  Map<int, Rol> rolesAsignados, {
+  Map<String, int> roleLimits = kRoleLimits,
+}) {
   final limit = roleLimits[nombreRol];
   if (limit == null) return true; // sin límite
   final current = countAssignedRole(rolesAsignados, nombreRol);
