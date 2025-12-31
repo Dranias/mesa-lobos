@@ -158,10 +158,10 @@ class _MesaScreenState extends State<MesaScreen> {
           lobosFlow: lobosFlow,
           catalogo: widget.rolesSeleccionados,
           context: context,
-          updateCupido: (f) => cupidoFlow = f,
-          updateNino: (f) => ninoFlow = f,
-          updateVidente: (f) => videnteFlow = f,
-          updateLobos: (f) => lobosFlow = f,
+          updateCupido: (f) => setState(() => cupidoFlow = f),
+          updateNino: (f) => setState(() => ninoFlow = f),
+          updateVidente: (f) => setState(() => videnteFlow = f),
+          updateLobos: (f) => setState(() => lobosFlow = f),
         );
       }
       // --- Otras noches ---
