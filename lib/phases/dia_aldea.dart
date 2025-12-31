@@ -10,11 +10,10 @@ class DiaAldea {
         .map((r) => r!.nombre)
         .toList();
 
+    // 👇 Forzamos que siempre exista Alguacil en el día
     if (!activos.contains('Alguacil')) activos.add('Alguacil');
 
-    return reglasDia
-        .where((r) => activos.contains(r.rol))
-        .toList()
+    return reglasDia.where((r) => activos.contains(r.rol)).toList()
       ..sort((a, b) => a.orden.compareTo(b.orden));
   }
 
@@ -26,6 +25,7 @@ class DiaAldea {
     required Set<int> jugadoresMuertos,
     required int? victimaDeLobos,
     required void Function(int) onLinchamiento,
+    required int? alguacilIndex,
   }) {
     showDialog(
       context: context,
@@ -41,7 +41,9 @@ class DiaAldea {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               const SizedBox(height: 12),
-              const Text('La gente de la aldea se junta y comienzan a debatir.'),
+              const Text(
+                'La gente de la aldea se junta y comienzan a debatir.',
+              ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
@@ -52,6 +54,7 @@ class DiaAldea {
                     rolesAsignados: rolesAsignados,
                     jugadoresMuertos: jugadoresMuertos,
                     onLinchamiento: onLinchamiento,
+                    alguacilIndex: alguacilIndex,
                   );
                 },
                 child: const Text('Comenzar votación'),
@@ -70,6 +73,7 @@ class DiaAldea {
     required Map<int, Rol> rolesAsignados,
     required Set<int> jugadoresMuertos,
     required void Function(int) onLinchamiento,
+    required int? alguacilIndex,
   }) {
     final votos = <int, int>{}; // jugador -> index de su voto
     final conteo = <int, int>{}; // index -> número de votos recibidos
@@ -77,10 +81,15 @@ class DiaAldea {
     void registrarVoto(int votante, int objetivo) {
       final votoAnterior = votos[votante];
       if (votoAnterior != null) {
-        conteo[votoAnterior] = (conteo[votoAnterior] ?? 0) - 1;
+        final pesoAnterior = (votante == alguacilIndex) ? 2 : 1;
+        conteo[votoAnterior] = (conteo[votoAnterior] ?? 0) - pesoAnterior;
       }
+
       votos[votante] = objetivo;
-      conteo[objetivo] = (conteo[objetivo] ?? 0) + 1;
+
+      // 👇 sumar correctamente según el peso del votante
+      final peso = (votante == alguacilIndex) ? 2 : 1;
+      conteo[objetivo] = (conteo[objetivo] ?? 0) + peso;
     }
 
     showDialog(
@@ -101,8 +110,19 @@ class DiaAldea {
 
                     return ListTile(
                       leading: muerto
-                          ? const Icon(Icons.close, color: Colors.red)
-                          : const Icon(Icons.person),
+                          ? Image.asset(
+                              'assets/roles/muerto.png',
+                              width: 32,
+                              height: 32,
+                            )
+                          : (alguacilIndex == index
+                                ? Image.asset(
+                                    'assets/roles/alguacil.png',
+                                    width: 48,
+                                    height: 48,
+                                  )
+                                : const Icon(Icons.person, size: 32)),
+
                       title: Text(nombre),
                       subtitle: Text(
                         muerto
@@ -127,10 +147,10 @@ class DiaAldea {
                                           registrarVoto(index, j);
                                         });
                                         Navigator.of(ctx2).pop();
-                                        // 👇 notificación arriba
                                         mostrarNotificacionArriba(
-                                            context,
-                                            '$nombre votó contra ${jugadores[j]}');
+                                          context,
+                                          '$nombre votó contra ${jugadores[j]}',
+                                        );
                                       },
                                       child: Text(jugadores[j]),
                                     ),
@@ -158,10 +178,10 @@ class DiaAldea {
                     Navigator.of(ctx).pop();
                     if (victima != null) {
                       onLinchamiento(victima!);
-                      // 👇 notificación arriba
                       mostrarNotificacionArriba(
-                          context,
-                          '${jugadores[victima!]} fue linchado por la aldea');
+                        context,
+                        '${jugadores[victima!]} fue linchado por la aldea',
+                      );
                     }
                   },
                   child: const Text('Finalizar votación'),
@@ -183,10 +203,15 @@ class DiaAldea {
     required Set<int> jugadoresMuertos,
     required Map<String, List<String>> relaciones,
     required BuildContext context,
+    required void Function(int) updateAlguacil,
   }) {
     switch (reglaActual.rol) {
       case 'Alguacil':
-        mostrarNotificacionArriba(context, 'El Alguacil incita a votar.');
+        updateAlguacil(index);
+        mostrarNotificacionArriba(
+          context,
+          '${jugadores[index]} es el nuevo Alguacil',
+        );
         break;
       default:
         // Por ahora no hace nada especial

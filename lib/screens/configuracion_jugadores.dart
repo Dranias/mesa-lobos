@@ -184,8 +184,8 @@ class _SeleccionRolesScreenState extends State<SeleccionRolesScreen> {
                       return ListTile(
                         leading: Image.asset(
                           rol.imagen,
-                          width: 100,
-                          height: 100,
+                          width: 140,
+                          height: 140,
                         ),
                         title: Text(rol.nombre),
                         subtitle: Text(
@@ -289,8 +289,8 @@ class _SeleccionRolesScreenState extends State<SeleccionRolesScreen> {
                     children: [
                       Image.asset(
                         imagen,
-                        width: 84,
-                        height: 84,
+                        width: 120,
+                        height: 120,
                         fit: BoxFit.contain,
                       ),
                       const SizedBox(height: 4),

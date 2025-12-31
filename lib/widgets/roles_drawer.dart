@@ -54,7 +54,7 @@ class RolesDrawer extends StatelessWidget {
             final revelado = rolAsignado != null;
 
             return ListTile(
-              leading: Image.asset(rol.imagen, width: 36, height: 36),
+              leading: Image.asset(rol.imagen, width: 56, height: 56),
               title: Text(jugador),
               subtitle: Text(
                 'Rol: ${rol.nombre}${revelado ? "." : ""}',
@@ -119,8 +119,8 @@ class RolesDrawer extends StatelessWidget {
 
               return ListTile(
                 leading: imagenRol != null && imagenRol!.isNotEmpty
-                    ? Image.asset(imagenRol!, width: 36, height: 36)
-                    : const Icon(Icons.link, size: 28),
+                    ? Image.asset(imagenRol!, width: 56, height: 56)
+                    : const Icon(Icons.link, size: 40),
                 title: Text(title),
                 subtitle: Text(subtitle),
               );

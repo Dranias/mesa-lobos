@@ -11,7 +11,6 @@ class MesaJugadores extends StatelessWidget {
   final List<String> jugadores;
   final Map<int, Rol> rolesAsignados;
   final String? rolActivo;
-
   final void Function(int, String)? onAsignarRolGenerico;
 
   final CupidoFlow cupidoFlow;
@@ -19,6 +18,9 @@ class MesaJugadores extends StatelessWidget {
   final VidenteFlow videnteFlow;
   final LobosComunesFlow lobosFlow;
   final int? alguacilIndex;
+
+  // 👇 nuevo: lista de muertos
+  final Set<int> jugadoresMuertos;
 
   const MesaJugadores({
     super.key,
@@ -31,6 +33,7 @@ class MesaJugadores extends StatelessWidget {
     required this.videnteFlow,
     required this.lobosFlow,
     this.alguacilIndex,
+    required this.jugadoresMuertos, // 👈 nuevo
   });
 
   @override
@@ -62,7 +65,7 @@ class MesaJugadores extends StatelessWidget {
     final step = (2 * math.pi) / total;
     final angle = startAngle + step * index;
 
-    const avatarRadius = 28.0;
+    const avatarRadius = 40.0;
     final x = cx + r * math.cos(angle) - avatarRadius;
     final y = cy + r * math.sin(angle) - avatarRadius;
 
@@ -71,17 +74,24 @@ class MesaJugadores extends StatelessWidget {
 
     final isCupido = cupidoFlow.isCupido(index);
     final isEnamorado = cupidoFlow.isEnamorado(index);
-
     final isNino = ninoFlow.isNino(index);
     final isModelo = ninoFlow.isModelo(index);
-
     final isVidente = videnteFlow.isVidente(index);
-
     final esAlguacil = alguacilIndex == index;
 
-    // --- Avatar principal: SIEMPRE basado en rolesAsignados ---
+    final muerto = jugadoresMuertos.contains(index); // 👈 nuevo
+
+    // --- Avatar principal ---
     Widget avatar;
-    if (rol != null && rol.imagen.isNotEmpty) {
+    if (muerto) {
+      // 👇 si está muerto, mostrar muerto.png
+      avatar = Image.asset(
+        'assets/roles/muerto.png',
+        width: avatarRadius * 2,
+        height: avatarRadius * 2,
+        fit: BoxFit.cover,
+      );
+    } else if (rol != null && rol.imagen.isNotEmpty) {
       avatar = Image.asset(
         rol.imagen,
         width: avatarRadius * 2,
@@ -103,64 +113,61 @@ class MesaJugadores extends StatelessWidget {
       left: x,
       top: y,
       child: GestureDetector(
-        onTap: () {
-          if (rolActivo != null) {
-            onAsignarRolGenerico?.call(index, rolActivo!);
-          }
-        },
+        onTap: muerto
+            ? null // 👈 si está muerto, no responde
+            : () {
+                if (rolActivo != null) {
+                  onAsignarRolGenerico?.call(index, rolActivo!);
+                }
+              },
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ... dentro de _buildJugador
             Stack(
               clipBehavior: Clip.none,
               children: [
                 avatar,
                 // Badges adicionales
-                if (!isCupido && isEnamorado)
+                if (!isCupido && isEnamorado && !muerto)
                   Positioned(
-                    right: -2,
-                    top: -2,
+                    right: -6,
+                    top: -6,
                     child: Image.asset(
-                      // usa el asset del rol Cupido
                       rolesAsignados.values
                           .firstWhere((r) => r.nombre == 'Cupido')
                           .imagen,
-                      width: 16,
-                      height: 16,
+                      width: 28,
+                      height: 28,
                     ),
                   ),
-                if (!isNino && isModelo)
+                if (!isNino && isModelo && !muerto)
                   Positioned(
-                    left: -2,
-                    bottom: -2,
+                    left: -6,
+                    bottom: -6,
                     child: Image.asset(
-                      // usa el asset del rol Niño Salvaje
                       rolesAsignados.values
                           .firstWhere((r) => r.nombre == 'Niño Salvaje')
                           .imagen,
-                      width: 16,
-                      height: 16,
+                      width: 28,
+                      height: 28,
                     ),
                   ),
-
-                if (esAlguacil)
+                if (esAlguacil && !muerto)
                   Positioned(
-                    left: -2,
-                    top: -2,
+                    left: -6,
+                    top: -6,
                     child: Image.asset(
                       'assets/roles/alguacil.png',
-                      width: 16,
-                      height: 16,
+                      width: 28,
+                      height: 28,
                     ),
                   ),
               ],
             ),
-
             const SizedBox(height: 4),
             Text(nombre),
             Text(
-              rol?.nombre ?? 'Sin rol',
+              muerto ? 'Muerto' : (rol?.nombre ?? 'Sin rol'),
               style: const TextStyle(fontSize: 12, color: Colors.black54),
             ),
           ],
