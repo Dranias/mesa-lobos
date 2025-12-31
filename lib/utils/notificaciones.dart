@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 
 void mostrarNotificacionArriba(BuildContext context, String mensaje) {
-  ScaffoldMessenger.of(context).clearSnackBars();
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
+  ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+  ScaffoldMessenger.of(context).clearMaterialBanners();
+  ScaffoldMessenger.of(context).showMaterialBanner(
+    MaterialBanner(
       content: Text(mensaje),
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.only(top: 20, left: 16, right: 16),
-      // Opcional: estilo
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       backgroundColor: Colors.black87,
-      duration: const Duration(seconds: 2),
+      contentTextStyle: const TextStyle(color: Colors.white),
+      actions: [
+        TextButton(
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+          },
+          child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
+        ),
+      ],
     ),
   );
 }

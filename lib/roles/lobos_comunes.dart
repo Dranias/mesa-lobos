@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/roles.dart';
+import '../utils/notificaciones.dart';
 
 class LobosComunesFlow {
   final List<int> lobosIndices;
@@ -43,9 +44,7 @@ LobosComunesFlow assignLoboComun({
 
   final nuevosLobos = [...flow.lobosIndices, index];
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('${jugadores[index]} es un Hombre Lobo Común')),
-  );
+  mostrarNotificacionArriba(context, '${jugadores[index]} es un Hombre Lobo Común');
 
   return flow.copyWith(lobosIndices: nuevosLobos, asignados: true);
 }
@@ -56,9 +55,7 @@ LobosComunesFlow elegirVictimaComun({
   required LobosComunesFlow flow,
   required BuildContext context,
 }) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Los Hombres Lobo Comunes devoran a ${jugadores[index]}')),
-  );
+  mostrarNotificacionArriba(context, 'Los Hombres Lobo Comunes devoran a ${jugadores[index]}');
 
   return flow.copyWith(victimaIndex: index);
 }

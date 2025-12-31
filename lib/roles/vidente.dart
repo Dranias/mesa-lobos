@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/roles.dart';
+import '../utils/notificaciones.dart';
 
 class VidenteFlow {
   final int? videnteIndex;
@@ -45,9 +46,7 @@ VidenteFlow assignVidente({
   final videnteRol = resolverRol('Vidente');
   rolesAsignados[index] = videnteRol;
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('${jugadores[index]} es la Vidente')),
-  );
+  mostrarNotificacionArriba(context, '${jugadores[index]} es la Vidente');
 
   return VidenteFlow(videnteIndex: index, videnteAsignada: true);
 }
@@ -73,13 +72,7 @@ VidenteFlow observarJugador({
     rolObservado?.nombre ?? 'Sin rol'
   ];
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(mensaje),
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.only(top: 80, left: 16, right: 16),
-    ),
-  );
+  mostrarNotificacionArriba(context, mensaje);
 
   return flow.copyWith(
     objetivoIndex: index,

@@ -16,8 +16,15 @@ class PrimeraNoche {
         .map((r) => r!.nombre)
         .toList();
 
-    return reglasPrimeraNoche.where((r) => activos.contains(r.rol)).toList()
-      ..sort((a, b) => a.orden.compareTo(b.orden));
+    final reglas =
+        reglasPrimeraNoche
+            .where(
+              (r) => activos.contains(r.rol) || r.rol == 'Alguacil',
+            ) // 👈 fuerza incluir Alguacil
+            .toList()
+          ..sort((a, b) => a.orden.compareTo(b.orden));
+
+    return reglas;
   }
 
   static void ejecutarPaso({

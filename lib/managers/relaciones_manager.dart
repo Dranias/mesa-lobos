@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/roles.dart';
+import '../utils/notificaciones.dart';
 
 /// Estado del flujo de Cupido (quién es Cupido y con quién se vincula).
 class CupidoFlow {
@@ -78,9 +79,7 @@ CupidoFlow assignCupido({
 
   // No registramos relación aún; se hace al elegir la pareja.
   if (context != null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${jugadores[index]} ahora es ${rolCupido.nombre}')),
-    );
+    mostrarNotificacionArriba(context, '${jugadores[index]} ahora es ${rolCupido.nombre}');
   }
 
   return CupidoFlow(
@@ -116,13 +115,7 @@ CupidoFlow selectPareja({
   ];
 
   if (context != null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Cupido (${jugadores[cupidoIndex]}) se vinculó con ${jugadores[index]}',
-        ),
-      ),
-    );
+    mostrarNotificacionArriba(context, 'Cupido (${jugadores[cupidoIndex]}) se vinculó con ${jugadores[index]}');
   }
 
   return CupidoFlow(
@@ -147,9 +140,7 @@ NinoSalvajeFlow assignNinoSalvaje({
   rolesAsignados[index] = rolNino;
 
   if (context != null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${jugadores[index]} ahora es ${rolNino.nombre}')),
-    );
+    mostrarNotificacionArriba(context, '${jugadores[index]} ahora es ${rolNino.nombre}');
   }
 
   return NinoSalvajeFlow(
@@ -184,13 +175,7 @@ NinoSalvajeFlow selectModelo({
   ];
 
   if (context != null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Niño Salvaje (${jugadores[ninoIndex]}) eligió como modelo a ${jugadores[index]}',
-        ),
-      ),
-    );
+    mostrarNotificacionArriba(context, 'Niño Salvaje (${jugadores[ninoIndex]}) eligió como modelo a ${jugadores[index]}');
   }
 
   return NinoSalvajeFlow(

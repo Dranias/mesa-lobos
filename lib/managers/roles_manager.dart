@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/roles.dart';
+import '../utils/notificaciones.dart';
 
 /// Límites por rol (puedes ampliar este mapa según tus reglas).
 /// Ejemplo: 'Lobo Feroz' máximo 2.
@@ -61,9 +62,7 @@ Rol? assignGenericRole({
   if (!canAssignRole(nombreRol, rolesAsignados, roleLimits: roleLimits)) {
     if (context != null) {
       final max = roleLimits[nombreRol];
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Límite alcanzado para $nombreRol (máximo $max).')),
-      );
+      mostrarNotificacionArriba(context, 'Límite alcanzado para $nombreRol (máximo $max).');
     }
     return null;
   }
@@ -72,9 +71,7 @@ Rol? assignGenericRole({
   rolesAsignados[index] = rolObj;
 
   if (context != null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${jugadores[index]} ahora es ${rolObj.nombre}')),
-    );
+    mostrarNotificacionArriba(context, '${jugadores[index]} ahora es ${rolObj.nombre}');
   }
 
   return rolObj;

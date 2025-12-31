@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../screens/mesa_screen.dart';
 import '../data/roles.dart';
+import '../utils/notificaciones.dart';
 
 /// Pantalla 1: nombres de jugadores (mínimo 6), con opción para agregar más
 class ConfiguracionJugadoresScreen extends StatefulWidget {
@@ -46,11 +47,7 @@ class _ConfiguracionJugadoresScreenState
         .toList();
 
     if (jugadores.length < _minJugadores) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Debes ingresar al menos $_minJugadores jugadores'),
-        ),
-      );
+      mostrarNotificacionArriba(context, 'Debes ingresar al menos $_minJugadores jugadores');
       return;
     }
 

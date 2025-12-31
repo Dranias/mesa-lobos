@@ -1,6 +1,7 @@
 // lib/roles/cupido.dart
 import 'package:flutter/material.dart';
 import '../data/roles.dart';
+import '../utils/notificaciones.dart';
 
 class CupidoFlow {
   final int? cupidoIndex;
@@ -56,9 +57,7 @@ CupidoFlow assignCupido({
   final cupidoRol = resolverRol('Cupido');
   rolesAsignados[index] = cupidoRol;
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('${jugadores[index]} es Cupido')),
-  );
+  mostrarNotificacionArriba(context, '${jugadores[index]} es Cupido');
 
   return CupidoFlow(cupidoIndex: index, cupidoAsignado: true);
 }
@@ -69,9 +68,7 @@ CupidoFlow selectPrimerEnamorado({
   required List<String> jugadores,
   required BuildContext context,
 }) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Cupido flecha a ${jugadores[index]} como primer enamorado')),
-  );
+  mostrarNotificacionArriba(context, 'Cupido flecha a ${jugadores[index]} como primer enamorado');
 
   return flow.copyWith(
     primerEnamoradoIndex: index,
@@ -92,13 +89,7 @@ CupidoFlow selectSegundoEnamorado({
   ];
   relaciones['Enamorados'] = enamorados;
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('Pareja formada: ${enamorados[0]} ❤ ${enamorados[1]}'),
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.only(top: 80, left: 16, right: 16),
-    ),
-  );
+  mostrarNotificacionArriba(context, 'Pareja formada: ${enamorados[0]} ❤ ${enamorados[1]}');
 
   return flow.copyWith(
     segundoEnamoradoIndex: index,

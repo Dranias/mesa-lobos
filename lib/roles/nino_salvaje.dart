@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/roles.dart';
+import '../utils/notificaciones.dart';
 
 class NinoSalvajeFlow {
   final int? ninoIndex;
@@ -44,9 +45,7 @@ NinoSalvajeFlow assignNinoSalvaje({
   final ninoRol = resolverRol('Niño Salvaje');
   rolesAsignados[index] = ninoRol;
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('${jugadores[index]} es el Niño Salvaje')),
-  );
+  mostrarNotificacionArriba(context, '${jugadores[index]} es el Niño Salvaje');
 
   return NinoSalvajeFlow(ninoIndex: index, ninoAsignado: true);
 }
@@ -60,9 +59,7 @@ NinoSalvajeFlow selectModelo({
 }) {
   relaciones['Niño Salvaje'] = [jugadores[flow.ninoIndex!], jugadores[index]];
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('El Niño Salvaje sigue como modelo a ${jugadores[index]}')),
-  );
+  mostrarNotificacionArriba(context, 'El Niño Salvaje sigue como modelo a ${jugadores[index]}');
 
   return flow.copyWith(
     modeloIndex: index,
