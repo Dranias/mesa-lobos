@@ -3,7 +3,7 @@ import '../data/reglas_cada_noche.dart';
 import '../data/roles.dart';
 import '../roles/vidente.dart';
 import '../roles/lobos_comunes.dart';
-import '../roles/bruja.dart';
+import '../roles/bruja.dart'; // 👈 flujo y helpers de la Bruja
 import '../managers/roles_manager.dart';
 import '../utils/notificaciones.dart';
 
@@ -28,12 +28,12 @@ class NocheAldea {
     required Map<String, List<String>> relaciones,
     required VidenteFlow videnteFlow,
     required LobosComunesFlow lobosFlow,
-    required BrujaFlow brujaFlow, // 👈 nuevo
+    required BrujaFlow brujaFlow,
     required List<Rol?> catalogo,
     required BuildContext context,
     required void Function(VidenteFlow) updateVidente,
     required void Function(LobosComunesFlow) updateLobos,
-    required void Function(BrujaFlow) updateBruja, // 👈 nuevo
+    required void Function(BrujaFlow) updateBruja,
   }) {
     if (!catalogo.any((r) => r?.nombre == reglaActual.rol)) return;
 
@@ -59,7 +59,9 @@ class NocheAldea {
           ));
           if (videnteFlow.objetivoIndex != null) {
             mostrarNotificacionArriba(
-                context, 'La Vidente observa a: ${jugadores[videnteFlow.objetivoIndex!]}');
+              context,
+              'La Vidente observa a: ${jugadores[videnteFlow.objetivoIndex!]}',
+            );
           }
         }
         break;
@@ -74,13 +76,28 @@ class NocheAldea {
           ));
           if (lobosFlow.victimaIndex != null) {
             mostrarNotificacionArriba(
-                context, 'Los lobos atacarán a: ${jugadores[lobosFlow.victimaIndex!]}');
+              context,
+              'Los lobos atacarán a: ${jugadores[lobosFlow.victimaIndex!]}',
+            );
           }
         }
         break;
 
       case 'Bruja':
         // 👇 La Bruja despierta después de los lobos
+        if (!brujaFlow.brujaAsignada) {
+          // Asignar la carta PNG de la Bruja
+          updateBruja(
+            assignBruja(
+              index: index,
+              jugadores: jugadores,
+              rolesAsignados: rolesAsignados,
+              resolverRol: (nombre) => resolveRolByName(nombre, catalogo),
+              context: context,
+            ),
+          );
+        }
+
         if (!brujaFlow.pocionVidaUsada || !brujaFlow.pocionMuerteUsada) {
           showDialog(
             context: context,
@@ -125,6 +142,8 @@ class NocheAldea {
                                 context,
                                 'La Bruja envenena a ${jugadores[index]}',
                               );
+                              relaciones.putIfAbsent('muertes', () => []);
+                              relaciones['muertes']!.add(jugadores[index]);
                               Navigator.pop(ctx);
                             },
                     ),

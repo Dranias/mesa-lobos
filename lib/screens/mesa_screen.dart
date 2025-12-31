@@ -15,10 +15,8 @@ import '../roles/bruja.dart';
 import '../managers/roles_manager.dart';
 
 // Reglas con alias
-import '../data/reglas_primera_noche.dart' as primera;
-import '../data/reglas_cada_noche.dart' as cada;
 import '../data/reglas_dia.dart' as dia;
-import '../data/reglas_al_morir.dart' as morir;
+
 
 // Phases
 import '../phases/primera_noche.dart';

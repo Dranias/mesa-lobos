@@ -8,7 +8,7 @@ import '../roles/cupido.dart';
 import '../roles/nino_salvaje.dart';
 import '../roles/vidente.dart';
 import '../roles/lobos_comunes.dart';
-import '../roles/bruja.dart'; // 👈 importa el flujo de la bruja
+import '../roles/bruja.dart'; // 👈 flujo y helpers de la Bruja
 
 class PrimeraNoche {
   static List<Regla> generarSecuencia(List<Rol?> rolesSeleccionados) {
@@ -63,7 +63,6 @@ class PrimeraNoche {
               context: context,
             ),
           );
-          mostrarNotificacionArriba(context, '${jugadores[index]} es Cupido');
         } else if (!cupidoFlow.primerEnamoradoAsignado) {
           updateCupido(
             selectPrimerEnamorado(
@@ -72,10 +71,6 @@ class PrimeraNoche {
               jugadores: jugadores,
               context: context,
             ),
-          );
-          mostrarNotificacionArriba(
-            context,
-            'Primer enamorado: ${jugadores[cupidoFlow.primerEnamoradoIndex!]}',
           );
         } else if (!cupidoFlow.segundoEnamoradoAsignado) {
           updateCupido(
@@ -87,7 +82,6 @@ class PrimeraNoche {
               context: context,
             ),
           );
-
           if (cupidoFlow.primerEnamoradoIndex != null &&
               cupidoFlow.segundoEnamoradoIndex != null) {
             relaciones['enamorados'] = [
@@ -95,11 +89,6 @@ class PrimeraNoche {
               jugadores[cupidoFlow.segundoEnamoradoIndex!],
             ];
           }
-
-          mostrarNotificacionArriba(
-            context,
-            'Segundo enamorado: ${jugadores[cupidoFlow.segundoEnamoradoIndex!]}',
-          );
         }
         break;
 
@@ -114,10 +103,6 @@ class PrimeraNoche {
               context: context,
             ),
           );
-          mostrarNotificacionArriba(
-            context,
-            '${jugadores[index]} es Niño Salvaje',
-          );
         } else if (!ninoFlow.modeloAsignado) {
           updateNino(
             selectModelo(
@@ -127,10 +112,6 @@ class PrimeraNoche {
               relaciones: relaciones,
               context: context,
             ),
-          );
-          mostrarNotificacionArriba(
-            context,
-            'Modelo del Niño Salvaje: ${jugadores[ninoFlow.modeloIndex!]}',
           );
         }
         break;
@@ -146,7 +127,6 @@ class PrimeraNoche {
               context: context,
             ),
           );
-          mostrarNotificacionArriba(context, '${jugadores[index]} es Vidente');
         } else if (!videnteFlow.objetivoAsignado) {
           updateVidente(
             observarJugador(
@@ -157,10 +137,6 @@ class PrimeraNoche {
               relaciones: relaciones,
               context: context,
             ),
-          );
-          mostrarNotificacionArriba(
-            context,
-            'La Vidente observa a: ${jugadores[videnteFlow.objetivoIndex!]}',
           );
         }
         break;
@@ -178,10 +154,6 @@ class PrimeraNoche {
               context: context,
             ),
           );
-          mostrarNotificacionArriba(
-            context,
-            '${jugadores[index]} es Hombre Lobo',
-          );
         } else if (lobosFlow.asignados && lobosFlow.victimaIndex == null) {
           updateLobos(
             elegirVictimaComun(
@@ -191,25 +163,21 @@ class PrimeraNoche {
               context: context,
             ),
           );
-          if (lobosFlow.victimaIndex != null) {
-            mostrarNotificacionArriba(
-              context,
-              'Los lobos atacarán a: ${jugadores[lobosFlow.victimaIndex!]}',
-            );
-          }
         }
         break;
 
       case 'Bruja':
-        // Revelación y decisión de poderes en primera noche, después de lobos
         if (!brujaFlow.brujaAsignada) {
+          // 👇 asigna la carta PNG de la Bruja
           updateBruja(
-            brujaFlow.copyWith(
-              brujaIndex: index,
-              brujaAsignada: true,
+            assignBruja(
+              index: index,
+              jugadores: jugadores,
+              rolesAsignados: rolesAsignados,
+              resolverRol: (nombre) => resolveRolByName(nombre, catalogo),
+              context: context,
             ),
           );
-          mostrarNotificacionArriba(context, '${jugadores[index]} es la Bruja');
         }
 
         // Preguntar si desea usar poderes
@@ -221,13 +189,12 @@ class PrimeraNoche {
               content: const Text('¿Desea usar sus poderes esta noche?'),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(ctx), // No usar
+                  onPressed: () => Navigator.pop(ctx),
                   child: const Text('No usar'),
                 ),
                 TextButton(
                   onPressed: () {
                     Navigator.pop(ctx);
-                    // Elegir qué poción usar
                     showDialog(
                       context: context,
                       builder: (ctx2) {
@@ -267,7 +234,6 @@ class PrimeraNoche {
                                         context,
                                         'La Bruja envenena a ${jugadores[index]}',
                                       );
-                                      // Registrar muerte por poción de la bruja
                                       relaciones.putIfAbsent('muertes', () => []);
                                       relaciones['muertes']!.add(jugadores[index]);
                                       Navigator.pop(ctx2);
@@ -295,10 +261,6 @@ class PrimeraNoche {
           rolesAsignados: rolesAsignados,
           catalogo: catalogo,
           context: context,
-        );
-        mostrarNotificacionArriba(
-          context,
-          '${jugadores[index]} es ${reglaActual.rol}',
         );
     }
   }
