@@ -15,11 +15,5 @@ class Regla {
 }
 
 const List<Regla> reglasDia = [
-  Regla(
-    rol: 'Alguacil',
-    momento: 'al_dia',
-    orden: 1,
-    frecuencia: 'repetido',
-    condicion: 'Sus votos cuentan doble',
-  ),
+  
 ];

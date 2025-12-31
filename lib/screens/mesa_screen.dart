@@ -92,8 +92,8 @@ class _MesaScreenState extends State<MesaScreen> {
     pasoActual = 0;
   }
 
-  void _mostrarCambioDeFase(String titulo) {
-    showDialog(
+  Future<void> _mostrarCambioDeFase(String titulo) async {
+    await showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
@@ -109,73 +109,78 @@ class _MesaScreenState extends State<MesaScreen> {
     );
   }
 
-  void _siguientePaso() {
-    setState(() {
-      if (pasoActual < secuencia.length - 1) {
-        pasoActual++;
-      } else {
-        if (esNoche) {
-          // Termina la noche
-          if (lobosFlow.victimaIndex != null) {
-            _eliminarJugador(lobosFlow.victimaIndex!, causa: 'lobos');
-          }
+  Future<void> _siguientePaso() async {
+    if (pasoActual < secuencia.length - 1) {
+      setState(() => pasoActual++);
+    } else {
+      if (esNoche) {
+        // Termina la noche
+        if (lobosFlow.victimaIndex != null) {
+          await _eliminarJugador(lobosFlow.victimaIndex!, causa: 'lobos');
+        }
 
+        setState(() {
           esNoche = false;
           pasoActual = 0;
+        });
 
-          // 👇 Mostrar inicio del día
-          _mostrarCambioDeFase('Inicia Día $nocheActual');
+        // 👇 Mostrar inicio del día
+        await _mostrarCambioDeFase('Inicia Día $nocheActual');
 
-          // Si el Alguacil murió, lo primero del día es reasignarlo
-          if (alguacilIndex == null) {
-            mostrarNotificacionArriba(
-              context,
-              'El Alguacil ha muerto. El narrador debe elegir un nuevo Alguacil antes de la votación.',
-            );
-
-            secuencia = [
-              ...dia.reglasDia.where((r) => r.rol == 'Alguacil'),
-              ...dia.reglasDia.where((r) => r.rol != 'Alguacil'),
-            ];
-            return;
-          }
-
-          // Generar secuencia del día
-          secuencia = dia.reglasDia;
-        } else {
-          // Termina el día → aquí sí abrimos la votación
-          DiaAldea.ejecutarDia(
-            context: context,
-            jugadores: widget.jugadores,
-            rolesAsignados: rolesAsignados,
-            jugadoresMuertos: jugadoresMuertos,
-            victimaDeLobos: lobosFlow.victimaIndex,
-            alguacilIndex: alguacilIndex,
-            onLinchamiento: (index) {
-              _eliminarJugador(index, causa: 'linchamiento');
-
-              // Después del linchamiento, avanzamos a la siguiente noche
-              setState(() {
-                nocheActual++;
-                esNoche = true;
-                _generarSecuencia();
-                pasoActual = 0;
-
-                // 👇 Mostrar inicio de la noche
-                if (nocheActual == 1) {
-                  _mostrarCambioDeFase('Inicia Primera Noche');
-                } else {
-                  _mostrarCambioDeFase('Inicia Noche $nocheActual');
-                }
-              });
-            },
+        // Si el Alguacil murió, lo primero del día es reasignarlo
+        if (alguacilIndex == null) {
+          mostrarNotificacionArriba(
+            context,
+            'El Alguacil ha muerto. El narrador debe elegir un nuevo Alguacil antes de la votación.',
           );
+
+          secuencia = [
+            ...dia.reglasDia.where((r) => r.rol == 'Alguacil'),
+            ...dia.reglasDia.where((r) => r.rol != 'Alguacil'),
+          ];
+          return;
         }
+
+        // Generar secuencia del día
+        secuencia = dia.reglasDia;
+      } else {
+        // Termina el día → aquí sí abrimos la votación
+        await _mostrarCambioDeFase('Termina Día $nocheActual');
+
+        DiaAldea.ejecutarDia(
+          context: context,
+          jugadores: widget.jugadores,
+          rolesAsignados: rolesAsignados,
+          jugadoresMuertos: jugadoresMuertos,
+          victimaDeLobos: lobosFlow.victimaIndex,
+          alguacilIndex: alguacilIndex,
+          onLinchamiento: (index) async {
+            await _eliminarJugador(index, causa: 'linchamiento');
+
+            // Después del linchamiento, avanzamos a la siguiente noche
+            setState(() {
+              nocheActual++;
+              esNoche = true;
+              _generarSecuencia();
+              pasoActual = 0;
+            });
+
+            // 👇 Mostrar inicio de la noche
+            if (nocheActual == 1) {
+              await _mostrarCambioDeFase('Inicia Primera Noche');
+            } else {
+              await _mostrarCambioDeFase('Inicia Noche $nocheActual');
+            }
+          },
+        );
       }
-    });
+    }
   }
 
-  void _eliminarJugador(int indexVictima, {String causa = 'desconocida'}) {
+  Future<void> _eliminarJugador(
+    int indexVictima, {
+    String causa = 'desconocida',
+  }) async {
     final nombreVictima = widget.jugadores[indexVictima];
     jugadoresMuertos.add(indexVictima);
     relaciones.removeWhere((rol, lista) => lista.contains(nombreVictima));
@@ -185,25 +190,25 @@ class _MesaScreenState extends State<MesaScreen> {
       alguacilIndex = null;
     }
 
-    // Narrar muerte
-    showDialog(
+    // 👇 Mostrar AlertDialog narrando la muerte
+    String mensaje;
+    switch (causa) {
+      case 'lobos':
+        mensaje = 'Los hombres lobos se han comido a $nombreVictima';
+        break;
+      case 'cupido':
+        mensaje = '$nombreVictima murió por amor, tras la flecha de Cupido';
+        break;
+      case 'linchamiento':
+        mensaje = '$nombreVictima fue linchado por la aldea';
+        break;
+      default:
+        mensaje = '$nombreVictima ha muerto';
+    }
+
+    await showDialog(
       context: context,
       builder: (ctx) {
-        String mensaje;
-        switch (causa) {
-          case 'lobos':
-            mensaje = 'Los hombres lobos se han comido a $nombreVictima';
-            break;
-          case 'cupido':
-            mensaje = '$nombreVictima murió por amor, tras la flecha de Cupido';
-            break;
-          case 'linchamiento':
-            mensaje = '$nombreVictima fue linchado por la aldea';
-            break;
-          default:
-            mensaje = '$nombreVictima ha muerto';
-        }
-
         return AlertDialog(
           title: const Text('Muerte en la aldea'),
           content: Text(mensaje),
@@ -217,14 +222,14 @@ class _MesaScreenState extends State<MesaScreen> {
       },
     );
 
-    // Lógica de muerte en cascada por Cupido
+    // 👇 Lógica de Cupido: si muere un enamorado, muere el otro también
     if (cupidoFlow.isEnamorado(indexVictima)) {
       final otroIndex = (indexVictima == cupidoFlow.primerEnamoradoIndex)
           ? cupidoFlow.segundoEnamoradoIndex
           : cupidoFlow.primerEnamoradoIndex;
 
       if (otroIndex != null && !jugadoresMuertos.contains(otroIndex)) {
-        _eliminarJugador(otroIndex, causa: 'cupido');
+        await _eliminarJugador(otroIndex, causa: 'cupido');
       }
     }
   }
