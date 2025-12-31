@@ -33,7 +33,7 @@ class MesaJugadores extends StatelessWidget {
     required this.videnteFlow,
     required this.lobosFlow,
     this.alguacilIndex,
-    required this.jugadoresMuertos, // 👈 nuevo
+    required this.jugadoresMuertos,
   });
 
   @override
@@ -152,6 +152,26 @@ class MesaJugadores extends StatelessWidget {
                       height: 28,
                     ),
                   ),
+                if (isNino && !ninoFlow.transformado && !muerto)
+                  Positioned(
+                    right: -6,
+                    bottom: -6,
+                    child: Image.asset(
+                      'assets/roles/nino_salvaje.png', // icono del niño salvaje
+                      width: 28,
+                      height: 28,
+                    ),
+                  ),
+                if (isNino && ninoFlow.transformado && !muerto)
+                  Positioned(
+                    right: -6,
+                    bottom: -6,
+                    child: Image.asset(
+                      'assets/roles/lobo_comun.png', // icono de lobo común
+                      width: 28,
+                      height: 28,
+                    ),
+                  ),
                 if (esAlguacil && !muerto)
                   Positioned(
                     left: -6,
@@ -164,6 +184,7 @@ class MesaJugadores extends StatelessWidget {
                   ),
               ],
             ),
+
             const SizedBox(height: 4),
             Text(nombre),
             Text(

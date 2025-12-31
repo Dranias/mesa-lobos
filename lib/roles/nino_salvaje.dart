@@ -7,12 +7,14 @@ class NinoSalvajeFlow {
   final int? modeloIndex;
   final bool ninoAsignado;
   final bool modeloAsignado;
+  final bool transformado;
 
   const NinoSalvajeFlow({
     this.ninoIndex,
     this.modeloIndex,
     this.ninoAsignado = false,
     this.modeloAsignado = false,
+    this.transformado = false,    
   });
 
   factory NinoSalvajeFlow.reset() => const NinoSalvajeFlow();
@@ -22,6 +24,7 @@ class NinoSalvajeFlow {
     int? modeloIndex,
     bool? ninoAsignado,
     bool? modeloAsignado,
+    bool? transformado,
   }) {
     return NinoSalvajeFlow(
       ninoIndex: ninoIndex ?? this.ninoIndex,

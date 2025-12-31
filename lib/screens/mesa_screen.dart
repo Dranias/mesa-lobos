@@ -222,7 +222,7 @@ class _MesaScreenState extends State<MesaScreen> {
       },
     );
 
-    // 👇 Lógica de Cupido: si muere un enamorado, muere el otro también
+    // Lógica de Cupido: si muere un enamorado, muere el otro también
     if (cupidoFlow.isEnamorado(indexVictima)) {
       final otroIndex = (indexVictima == cupidoFlow.primerEnamoradoIndex)
           ? cupidoFlow.segundoEnamoradoIndex
@@ -231,6 +231,20 @@ class _MesaScreenState extends State<MesaScreen> {
       if (otroIndex != null && !jugadoresMuertos.contains(otroIndex)) {
         await _eliminarJugador(otroIndex, causa: 'cupido');
       }
+    }
+
+    // Lógica del Niño Salvaje: si muere su modelo, se transforma en lobo
+    if (ninoFlow.modeloIndex == indexVictima && !ninoFlow.transformado) {
+      ninoFlow = ninoFlow.copyWith(transformado: true);
+
+      // Cambiar su rol a Lobo Común (usar el nombre exacto del catálogo)
+      final rolLobo = resolveRolByName('Hombres Lobo Comunes', widget.rolesSeleccionados);
+      rolesAsignados[ninoFlow.ninoIndex!] = rolLobo;
+
+      mostrarNotificacionArriba(
+        context,
+        '${widget.jugadores[ninoFlow.ninoIndex!]} se transforma en Lobo Común',
+      );
     }
   }
 
