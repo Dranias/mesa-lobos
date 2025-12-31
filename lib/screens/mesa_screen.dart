@@ -9,6 +9,7 @@ import '../roles/cupido.dart';
 import '../roles/nino_salvaje.dart';
 import '../roles/vidente.dart';
 import '../roles/lobos_comunes.dart';
+import '../roles/bruja.dart';
 
 // Managers
 import '../managers/roles_manager.dart';
@@ -60,6 +61,7 @@ class _MesaScreenState extends State<MesaScreen> {
   NinoSalvajeFlow ninoFlow = NinoSalvajeFlow.reset();
   VidenteFlow videnteFlow = VidenteFlow.reset();
   LobosComunesFlow lobosFlow = LobosComunesFlow.reset();
+  BrujaFlow brujaFlow = BrujaFlow.reset();
 
   int? alguacilIndex;
 
@@ -90,6 +92,12 @@ class _MesaScreenState extends State<MesaScreen> {
     }
 
     pasoActual = 0;
+  }
+
+  void _updateBruja(BrujaFlow nuevo) {
+    setState(() {
+      brujaFlow = nuevo;
+    });
   }
 
   Future<void> _mostrarCambioDeFase(String titulo) async {
@@ -272,12 +280,14 @@ class _MesaScreenState extends State<MesaScreen> {
           ninoFlow: ninoFlow,
           videnteFlow: videnteFlow,
           lobosFlow: lobosFlow,
+          brujaFlow: brujaFlow,
           catalogo: widget.rolesSeleccionados,
           context: context,
           updateCupido: (f) => setState(() => cupidoFlow = f),
           updateNino: (f) => setState(() => ninoFlow = f),
           updateVidente: (f) => setState(() => videnteFlow = f),
           updateLobos: (f) => setState(() => lobosFlow = f),
+          updateBruja: (f) => setState(() => brujaFlow = f),
         );
       }
       // --- Otras noches ---
@@ -290,10 +300,12 @@ class _MesaScreenState extends State<MesaScreen> {
           relaciones: relaciones,
           videnteFlow: videnteFlow,
           lobosFlow: lobosFlow,
+          brujaFlow: brujaFlow,
           catalogo: widget.rolesSeleccionados,
           context: context,
           updateVidente: (f) => videnteFlow = f,
           updateLobos: (f) => lobosFlow = f,
+          updateBruja: _updateBruja,
         );
       }
       // --- Día ---
@@ -323,6 +335,7 @@ class _MesaScreenState extends State<MesaScreen> {
         relaciones: relaciones,
         jugadores: widget.jugadores,
         rolesIniciales: widget.rolesSeleccionados,
+        brujaFlow: brujaFlow,
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -345,6 +358,7 @@ class _MesaScreenState extends State<MesaScreen> {
                 ninoFlow: ninoFlow,
                 videnteFlow: videnteFlow,
                 lobosFlow: lobosFlow,
+                brujaFlow: brujaFlow,
                 alguacilIndex: alguacilIndex,
                 jugadoresMuertos: jugadoresMuertos,
               ),

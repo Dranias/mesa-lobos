@@ -3,8 +3,9 @@ import '../data/reglas_cada_noche.dart';
 import '../data/roles.dart';
 import '../roles/vidente.dart';
 import '../roles/lobos_comunes.dart';
+import '../roles/bruja.dart';
 import '../managers/roles_manager.dart';
-import '../utils/notificaciones.dart'; 
+import '../utils/notificaciones.dart';
 
 class NocheAldea {
   static List<Regla> generarSecuencia(List<Rol?> rolesSeleccionados) {
@@ -27,10 +28,12 @@ class NocheAldea {
     required Map<String, List<String>> relaciones,
     required VidenteFlow videnteFlow,
     required LobosComunesFlow lobosFlow,
+    required BrujaFlow brujaFlow, // 👈 nuevo
     required List<Rol?> catalogo,
     required BuildContext context,
     required void Function(VidenteFlow) updateVidente,
     required void Function(LobosComunesFlow) updateLobos,
+    required void Function(BrujaFlow) updateBruja, // 👈 nuevo
   }) {
     if (!catalogo.any((r) => r?.nombre == reglaActual.rol)) return;
 
@@ -73,6 +76,63 @@ class NocheAldea {
             mostrarNotificacionArriba(
                 context, 'Los lobos atacarán a: ${jugadores[lobosFlow.victimaIndex!]}');
           }
+        }
+        break;
+
+      case 'Bruja':
+        // 👇 La Bruja despierta después de los lobos
+        if (!brujaFlow.pocionVidaUsada || !brujaFlow.pocionMuerteUsada) {
+          showDialog(
+            context: context,
+            builder: (ctx) {
+              return AlertDialog(
+                title: const Text('Acciones de la Bruja'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ElevatedButton.icon(
+                      icon: Image.asset('assets/roles/pocion_vida.png', width: 24, height: 24),
+                      label: const Text('Usar poción de vida'),
+                      onPressed: brujaFlow.pocionVidaUsada || lobosFlow.victimaIndex == null
+                          ? null
+                          : () {
+                              updateBruja(
+                                brujaFlow.copyWith(
+                                  pocionVidaUsada: true,
+                                  pocionVidaObjetivo: lobosFlow.victimaIndex,
+                                ),
+                              );
+                              mostrarNotificacionArriba(
+                                context,
+                                'La Bruja salva a ${jugadores[lobosFlow.victimaIndex!]}',
+                              );
+                              Navigator.pop(ctx);
+                            },
+                    ),
+                    ElevatedButton.icon(
+                      icon: Image.asset('assets/roles/pocion_muerte.png', width: 24, height: 24),
+                      label: const Text('Usar poción de muerte'),
+                      onPressed: brujaFlow.pocionMuerteUsada
+                          ? null
+                          : () {
+                              updateBruja(
+                                brujaFlow.copyWith(
+                                  pocionMuerteUsada: true,
+                                  pocionMuerteObjetivo: index,
+                                ),
+                              );
+                              mostrarNotificacionArriba(
+                                context,
+                                'La Bruja envenena a ${jugadores[index]}',
+                              );
+                              Navigator.pop(ctx);
+                            },
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
         }
         break;
 

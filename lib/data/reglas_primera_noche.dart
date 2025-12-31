@@ -49,6 +49,13 @@ const List<Regla> reglasPrimeraNoche = [
     momento: 'primera_noche',
     orden: 4,
     frecuencia: 'una_vez',
-    condicion: 'El narrador asigna a los jugadores que serán lobos comunes',
+    condicion: 'El narrador asigna a los jugadores que serán lobos comunes y eligen víctima',
+  ),
+  Regla(
+    rol: 'Bruja',
+    momento: 'primera_noche',
+    orden: 5,
+    frecuencia: 'una_vez',
+    condicion: 'Se revela y decide si usa sus poderes (vida o muerte)',
   ),
 ];

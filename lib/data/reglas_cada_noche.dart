@@ -18,15 +18,23 @@ const List<Regla> reglasCadaNoche = [
   Regla(
     rol: 'Vidente',
     momento: 'cada_noche',
-    orden: 1, // prioridad antes que lobos
+    orden: 1, // primero la Vidente
     frecuencia: 'repetido',
     condicion: 'Puede ver la carta de un jugador',
   ),
   Regla(
     rol: 'Hombres Lobo Comunes',
     momento: 'cada_noche',
-    orden: 2, // después de la Vidente
+    orden: 2, // después la Vidente
     frecuencia: 'repetido',
     condicion: 'Los lobos comunes devoran a un aldeano',
   ),
+  Regla(
+    rol: 'Bruja',
+    momento: 'cada_noche',
+    orden: 3, // después de los lobos
+    frecuencia: 'repetido',
+    condicion: 'Puede usar una de sus pociones (vida o muerte)',
+  ),
 ];
+

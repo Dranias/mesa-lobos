@@ -8,6 +8,7 @@ import '../roles/cupido.dart';
 import '../roles/nino_salvaje.dart';
 import '../roles/vidente.dart';
 import '../roles/lobos_comunes.dart';
+import '../roles/bruja.dart'; // 👈 importa el flujo de la bruja
 
 class PrimeraNoche {
   static List<Regla> generarSecuencia(List<Rol?> rolesSeleccionados) {
@@ -16,13 +17,10 @@ class PrimeraNoche {
         .map((r) => r!.nombre)
         .toList();
 
-    final reglas =
-        reglasPrimeraNoche
-            .where(
-              (r) => activos.contains(r.rol) || r.rol == 'Alguacil',
-            ) // 👈 fuerza incluir Alguacil
-            .toList()
-          ..sort((a, b) => a.orden.compareTo(b.orden));
+    final reglas = reglasPrimeraNoche
+        .where((r) => activos.contains(r.rol) || r.rol == 'Alguacil')
+        .toList()
+      ..sort((a, b) => a.orden.compareTo(b.orden));
 
     return reglas;
   }
@@ -37,12 +35,14 @@ class PrimeraNoche {
     required NinoSalvajeFlow ninoFlow,
     required VidenteFlow videnteFlow,
     required LobosComunesFlow lobosFlow,
+    required BrujaFlow brujaFlow, // 👈 nuevo
     required List<Rol?> catalogo,
     required BuildContext context,
     required void Function(CupidoFlow) updateCupido,
     required void Function(NinoSalvajeFlow) updateNino,
     required void Function(VidenteFlow) updateVidente,
     required void Function(LobosComunesFlow) updateLobos,
+    required void Function(BrujaFlow) updateBruja, // 👈 nuevo
   }) {
     final activos = catalogo
         .where((r) => r != null)
@@ -101,7 +101,6 @@ class PrimeraNoche {
             'Segundo enamorado: ${jugadores[cupidoFlow.segundoEnamoradoIndex!]}',
           );
         }
-
         break;
 
       case 'Niño Salvaje':
@@ -199,6 +198,93 @@ class PrimeraNoche {
             );
           }
         }
+        break;
+
+      case 'Bruja':
+        // Revelación y decisión de poderes en primera noche, después de lobos
+        if (!brujaFlow.brujaAsignada) {
+          updateBruja(
+            brujaFlow.copyWith(
+              brujaIndex: index,
+              brujaAsignada: true,
+            ),
+          );
+          mostrarNotificacionArriba(context, '${jugadores[index]} es la Bruja');
+        }
+
+        // Preguntar si desea usar poderes
+        showDialog(
+          context: context,
+          builder: (ctx) {
+            return AlertDialog(
+              title: const Text('La Bruja despierta'),
+              content: const Text('¿Desea usar sus poderes esta noche?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx), // No usar
+                  child: const Text('No usar'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    // Elegir qué poción usar
+                    showDialog(
+                      context: context,
+                      builder: (ctx2) {
+                        return AlertDialog(
+                          title: const Text('¿Qué poción desea usar la Bruja?'),
+                          actions: [
+                            TextButton(
+                              onPressed: brujaFlow.pocionVidaUsada ||
+                                      lobosFlow.victimaIndex == null
+                                  ? null
+                                  : () {
+                                      updateBruja(
+                                        brujaFlow.copyWith(
+                                          pocionVidaUsada: true,
+                                          pocionVidaObjetivo: lobosFlow.victimaIndex,
+                                        ),
+                                      );
+                                      mostrarNotificacionArriba(
+                                        context,
+                                        'La Bruja salva a ${jugadores[lobosFlow.victimaIndex!]}',
+                                      );
+                                      Navigator.pop(ctx2);
+                                    },
+                              child: const Text('Poción de vida'),
+                            ),
+                            TextButton(
+                              onPressed: brujaFlow.pocionMuerteUsada
+                                  ? null
+                                  : () {
+                                      updateBruja(
+                                        brujaFlow.copyWith(
+                                          pocionMuerteUsada: true,
+                                          pocionMuerteObjetivo: index,
+                                        ),
+                                      );
+                                      mostrarNotificacionArriba(
+                                        context,
+                                        'La Bruja envenena a ${jugadores[index]}',
+                                      );
+                                      // Registrar muerte por poción de la bruja
+                                      relaciones.putIfAbsent('muertes', () => []);
+                                      relaciones['muertes']!.add(jugadores[index]);
+                                      Navigator.pop(ctx2);
+                                    },
+                              child: const Text('Poción de muerte'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: const Text('Usar poderes'),
+                ),
+              ],
+            );
+          },
+        );
         break;
 
       default:

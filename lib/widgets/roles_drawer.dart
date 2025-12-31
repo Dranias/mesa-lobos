@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import '../data/roles.dart';
+import '../roles/bruja.dart'; // 👈 importa el flujo de la bruja
 
 /// Drawer lateral que muestra:
 /// - Qué jugador tiene qué rol (usando la imagen del rol).
-/// - Relaciones especiales (Cupido, Niño Salvaje, etc.) tomadas del mapa [relaciones].
+/// - Relaciones especiales (Cupido, Niño Salvaje, etc.).
+/// - Estado de la Bruja y sus pociones.
 class RolesDrawer extends StatelessWidget {
   final Map<int, Rol> rolesAsignados; // indexJugador -> Rol
-  final Map<String, List<String>>
-  relaciones; // nombreRol -> [actor, objetivo] (o más)
+  final Map<String, List<String>> relaciones; // nombreRol -> [actor, objetivo]
   final List<String> jugadores; // nombres en orden
   final List<Rol?> rolesIniciales; // roles seleccionados al inicio
+  final BrujaFlow brujaFlow; // 👈 nuevo: estado de la bruja
 
   const RolesDrawer({
     super.key,
@@ -17,6 +19,7 @@ class RolesDrawer extends StatelessWidget {
     required this.relaciones,
     required this.jugadores,
     required this.rolesIniciales,
+    required this.brujaFlow,
   });
 
   @override
@@ -39,9 +42,7 @@ class RolesDrawer extends StatelessWidget {
                 : null;
             final rolAsignado = rolesAsignados[index];
 
-            // Si ya fue asignado en la narración, usamos ese; si no, mostramos el inicial
-            final rol =
-                rolAsignado ??
+            final rol = rolAsignado ??
                 rolInicial ??
                 Rol(
                   nombre: 'Aldeano',
@@ -50,7 +51,6 @@ class RolesDrawer extends StatelessWidget {
                   imagen: 'assets/roles/aldeano.png',
                 );
 
-            // Leyenda extra si ya fue revelado en la narración
             final revelado = rolAsignado != null;
 
             return ListTile(
@@ -69,7 +69,6 @@ class RolesDrawer extends StatelessWidget {
           ),
           const Divider(),
 
-          // Relaciones especiales (Cupido, Niño Salvaje, etc.)
           if (relaciones.isEmpty)
             const ListTile(
               title: Text('Sin relaciones registradas aún'),
@@ -80,9 +79,8 @@ class RolesDrawer extends StatelessWidget {
           else
             ...relaciones.entries.map((entry) {
               final rolNombre = entry.key;
-              final lista = entry.value; // Ej: [actor, objetivo]
+              final lista = entry.value;
 
-              // Mensajes amigables por rol conocido
               String title = rolNombre;
               String subtitle;
 
@@ -101,7 +99,6 @@ class RolesDrawer extends StatelessWidget {
                   subtitle = lista.join(' • ');
               }
 
-              // Intentar cargar imagen del rol si está en rolesAsignados, si no, usar un ícono por defecto
               String? imagenRol;
               try {
                 final entrada = rolesAsignados.entries.firstWhere(
@@ -111,7 +108,6 @@ class RolesDrawer extends StatelessWidget {
                     Rol(nombre: '', descripcion: '', objetivo: '', imagen: ''),
                   ),
                 );
-
                 if (entrada.key != -1) imagenRol = entrada.value.imagen;
               } catch (_) {
                 imagenRol = null;
@@ -125,6 +121,48 @@ class RolesDrawer extends StatelessWidget {
                 subtitle: Text(subtitle),
               );
             }),
+
+          const SizedBox(height: 8),
+          const Text(
+            'Bruja',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const Divider(),
+
+          if (brujaFlow.brujaAsignada) ...[
+            ListTile(
+              leading: Image.asset(
+                'assets/roles/pocion_vida.png',
+                width: 32,
+                height: 32,
+                color: brujaFlow.pocionVidaUsada ? Colors.grey : null,
+              ),
+              title: const Text('Poción de vida'),
+              subtitle: Text(
+                brujaFlow.pocionVidaUsada
+                    ? 'Usada en ${brujaFlow.pocionVidaObjetivo != null ? jugadores[brujaFlow.pocionVidaObjetivo!] : 'nadie'}'
+                    : 'Disponible',
+              ),
+            ),
+            ListTile(
+              leading: Image.asset(
+                'assets/roles/pocion_muerte.png',
+                width: 32,
+                height: 32,
+                color: brujaFlow.pocionMuerteUsada ? Colors.grey : null,
+              ),
+              title: const Text('Poción de muerte'),
+              subtitle: Text(
+                brujaFlow.pocionMuerteUsada
+                    ? 'Usada en ${brujaFlow.pocionMuerteObjetivo != null ? jugadores[brujaFlow.pocionMuerteObjetivo!] : 'nadie'}'
+                    : 'Disponible',
+              ),
+            ),
+          ] else
+            const ListTile(
+              title: Text('Bruja no asignada'),
+              subtitle: Text('Se mostrará aquí cuando despierte en la narración.'),
+            ),
         ],
       ),
     );

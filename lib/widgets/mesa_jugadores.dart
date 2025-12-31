@@ -6,6 +6,7 @@ import '../roles/cupido.dart';
 import '../roles/nino_salvaje.dart';
 import '../roles/vidente.dart';
 import '../roles/lobos_comunes.dart';
+import '../roles/bruja.dart';
 
 class MesaJugadores extends StatelessWidget {
   final List<String> jugadores;
@@ -18,6 +19,7 @@ class MesaJugadores extends StatelessWidget {
   final VidenteFlow videnteFlow;
   final LobosComunesFlow lobosFlow;
   final int? alguacilIndex;
+  final BrujaFlow brujaFlow;
 
   // 👇 nuevo: lista de muertos
   final Set<int> jugadoresMuertos;
@@ -32,6 +34,7 @@ class MesaJugadores extends StatelessWidget {
     required this.ninoFlow,
     required this.videnteFlow,
     required this.lobosFlow,
+    required this.brujaFlow,
     this.alguacilIndex,
     required this.jugadoresMuertos,
   });
@@ -182,6 +185,34 @@ class MesaJugadores extends StatelessWidget {
                       height: 28,
                     ),
                   ),
+                if (brujaFlow.isBruja(index) && !muerto) ...[
+                  // Poción de vida
+                  Positioned(
+                    right: -6,
+                    top: -6,
+                    child: Image.asset(
+                      'assets/roles/pocion_vida.png',
+                      width: 28,
+                      height: 28,
+                      color: brujaFlow.pocionVidaUsada
+                          ? Colors.grey
+                          : null, // 👈 gris si ya usada
+                    ),
+                  ),
+                  // Poción de muerte
+                  Positioned(
+                    right: -6,
+                    bottom: -6,
+                    child: Image.asset(
+                      'assets/roles/pocion_muerte.png',
+                      width: 28,
+                      height: 28,
+                      color: brujaFlow.pocionMuerteUsada
+                          ? Colors.grey
+                          : null, // 👈 gris si ya usada
+                    ),
+                  ),
+                ],
               ],
             ),
 

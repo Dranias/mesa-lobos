@@ -15,8 +15,7 @@ class Rol {
 final List<Rol> roles = [
   Rol(
     nombre: 'Hombres Lobo Comunes',
-    descripcion:
-        'Cada noche devoran a un aldeano.\n',
+    descripcion: 'Cada noche devoran a un aldeano.\n',
     objetivo: 'Matar al resto de habitantes de la aldea.',
     imagen: 'assets/roles/lobo_comun.png',
   ),
@@ -72,7 +71,10 @@ final List<Rol> roles = [
   Rol(
     nombre: 'Bruja',
     descripcion:
-        'Tiene una poción curativa y una venenosa. Solo puede usar cada una una vez.',
+        'Despierta todas las noches después de los Hombres Lobo.\n'
+        'Tiene una poción curativa para resucitar y una venenosa que mata.\n' 
+        'Solo puede usar cada una una vez.\n'
+        'Se puede recusitar a si misma',
     objetivo: 'Matar a todos los Hombres Lobo.',
     imagen: 'assets/roles/bruja.png',
   ),
@@ -234,7 +236,8 @@ final List<Rol> roles = [
   ),
   Rol(
     nombre: 'Ángel',
-    descripcion: 'Si el Ángel está en juego, la partida empieza con una votación de los Aldeanos.\n'
+    descripcion:
+        'Si el Ángel está en juego, la partida empieza con una votación de los Aldeanos.\n'
         'Si consigue que sea él el linchado, o el primero en ser devorado, gana la partida.\n'
         'Si no lo consigue, se convierte en un Aldeano Común.',
     objetivo: 'Conseguir que le linchen o le devoren el primero.',
@@ -242,7 +245,8 @@ final List<Rol> roles = [
   ),
   Rol(
     nombre: 'Flautista',
-    descripcion: 'Se despierta cada noche y hechiza a dos jugadores.\n'
+    descripcion:
+        'Se despierta cada noche y hechiza a dos jugadores.\n'
         'Cuando todo el pueblo esté hechizado gana la partida.\n'
         'Si le infectan se convierte en un Hombre Lobo Común.\n'
         'El Protector no protege de su hechizo.\n'
@@ -253,7 +257,8 @@ final List<Rol> roles = [
   ),
   Rol(
     nombre: 'Abominable Sectario',
-    descripcion: 'Antes de empezar la partida el narrador divide la Aldea en 2 grupos (por sexo, gafas, etc.).\n'
+    descripcion:
+        'Antes de empezar la partida el narrador divide la Aldea en 2 grupos (por sexo, gafas, etc.).\n'
         'El Abominable Sectario pertenecerá a uno de esos grupos.',
     objetivo: 'Matar a todos los jugadores del grupo al que no pertenece.',
     imagen: 'assets/roles/sectario.png',
