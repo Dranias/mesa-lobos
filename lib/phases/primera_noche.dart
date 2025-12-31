@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../utils/notificaciones.dart';
+
 import '../data/reglas_primera_noche.dart';
 import '../data/roles.dart';
 import '../managers/roles_manager.dart';
@@ -14,9 +16,7 @@ class PrimeraNoche {
         .map((r) => r!.nombre)
         .toList();
 
-    return reglasPrimeraNoche
-        .where((r) => activos.contains(r.rol))
-        .toList()
+    return reglasPrimeraNoche.where((r) => activos.contains(r.rol)).toList()
       ..sort((a, b) => a.orden.compareTo(b.orden));
   }
 
@@ -37,96 +37,160 @@ class PrimeraNoche {
     required void Function(VidenteFlow) updateVidente,
     required void Function(LobosComunesFlow) updateLobos,
   }) {
-    // Verificar que el rol está activo antes de ejecutar
-    if (!catalogo.any((r) => r?.nombre == reglaActual.rol)) return;
+    final activos = catalogo
+        .where((r) => r != null)
+        .map((r) => r!.nombre)
+        .toList();
+
+    if (!activos.contains(reglaActual.rol)) return;
 
     switch (reglaActual.rol) {
       case 'Cupido':
         if (!cupidoFlow.cupidoAsignado) {
-          updateCupido(assignCupido(
-            index: index,
-            jugadores: jugadores,
-            rolesAsignados: rolesAsignados,
-            resolverRol: (nombre) => resolveRolByName(nombre, catalogo),
-            context: context,
-          ));
+          updateCupido(
+            assignCupido(
+              index: index,
+              jugadores: jugadores,
+              rolesAsignados: rolesAsignados,
+              resolverRol: (nombre) => resolveRolByName(nombre, catalogo),
+              context: context,
+            ),
+          );
+          mostrarNotificacionArriba(context, '${jugadores[index]} es Cupido');
         } else if (!cupidoFlow.primerEnamoradoAsignado) {
-          updateCupido(selectPrimerEnamorado(
-            index: index,
-            flow: cupidoFlow,
-            jugadores: jugadores,
-            context: context,
-          ));
+          updateCupido(
+            selectPrimerEnamorado(
+              index: index,
+              flow: cupidoFlow,
+              jugadores: jugadores,
+              context: context,
+            ),
+          );
+          mostrarNotificacionArriba(
+            context,
+            'Primer enamorado: ${jugadores[cupidoFlow.primerEnamoradoIndex!]}',
+          );
         } else if (!cupidoFlow.segundoEnamoradoAsignado) {
-          updateCupido(selectSegundoEnamorado(
-            index: index,
-            flow: cupidoFlow,
-            jugadores: jugadores,
-            relaciones: relaciones,
-            context: context,
-          ));
+          updateCupido(
+            selectSegundoEnamorado(
+              index: index,
+              flow: cupidoFlow,
+              jugadores: jugadores,
+              relaciones: relaciones,
+              context: context,
+            ),
+          );
+
+          if (cupidoFlow.primerEnamoradoIndex != null &&
+              cupidoFlow.segundoEnamoradoIndex != null) {
+            relaciones['enamorados'] = [
+              jugadores[cupidoFlow.primerEnamoradoIndex!],
+              jugadores[cupidoFlow.segundoEnamoradoIndex!],
+            ];
+          }
+
+          mostrarNotificacionArriba(
+            context,
+            'Segundo enamorado: ${jugadores[cupidoFlow.segundoEnamoradoIndex!]}',
+          );
         }
+
         break;
 
       case 'Niño Salvaje':
         if (!ninoFlow.ninoAsignado) {
-          updateNino(assignNinoSalvaje(
-            index: index,
-            jugadores: jugadores,
-            rolesAsignados: rolesAsignados,
-            resolverRol: (nombre) => resolveRolByName(nombre, catalogo),
-            context: context,
-          ));
+          updateNino(
+            assignNinoSalvaje(
+              index: index,
+              jugadores: jugadores,
+              rolesAsignados: rolesAsignados,
+              resolverRol: (nombre) => resolveRolByName(nombre, catalogo),
+              context: context,
+            ),
+          );
+          mostrarNotificacionArriba(
+            context,
+            '${jugadores[index]} es Niño Salvaje',
+          );
         } else if (!ninoFlow.modeloAsignado) {
-          updateNino(selectModelo(
-            index: index,
-            flow: ninoFlow,
-            jugadores: jugadores,
-            relaciones: relaciones,
-            context: context,
-          ));
+          updateNino(
+            selectModelo(
+              index: index,
+              flow: ninoFlow,
+              jugadores: jugadores,
+              relaciones: relaciones,
+              context: context,
+            ),
+          );
+          mostrarNotificacionArriba(
+            context,
+            'Modelo del Niño Salvaje: ${jugadores[ninoFlow.modeloIndex!]}',
+          );
         }
         break;
 
       case 'Vidente':
         if (!videnteFlow.videnteAsignada) {
-          updateVidente(assignVidente(
-            index: index,
-            jugadores: jugadores,
-            rolesAsignados: rolesAsignados,
-            resolverRol: (nombre) => resolveRolByName(nombre, catalogo),
-            context: context,
-          ));
+          updateVidente(
+            assignVidente(
+              index: index,
+              jugadores: jugadores,
+              rolesAsignados: rolesAsignados,
+              resolverRol: (nombre) => resolveRolByName(nombre, catalogo),
+              context: context,
+            ),
+          );
+          mostrarNotificacionArriba(context, '${jugadores[index]} es Vidente');
         } else if (!videnteFlow.objetivoAsignado) {
-          updateVidente(observarJugador(
-            index: index,
-            flow: videnteFlow,
-            jugadores: jugadores,
-            rolesAsignados: rolesAsignados,
-            relaciones: relaciones,
-            context: context,
-          ));
+          updateVidente(
+            observarJugador(
+              index: index,
+              flow: videnteFlow,
+              jugadores: jugadores,
+              rolesAsignados: rolesAsignados,
+              relaciones: relaciones,
+              context: context,
+            ),
+          );
+          mostrarNotificacionArriba(
+            context,
+            'La Vidente observa a: ${jugadores[videnteFlow.objetivoIndex!]}',
+          );
         }
         break;
 
       case 'Hombres Lobo Comunes':
         if (lobosFlow.lobosIndices.length <
             catalogo.where((r) => r?.nombre == 'Hombres Lobo Comunes').length) {
-          updateLobos(assignLoboComun(
-            index: index,
-            jugadores: jugadores,
-            rolesAsignados: rolesAsignados,
-            resolverRol: (nombre) => resolveRolByName(nombre, catalogo),
-            flow: lobosFlow,
-            context: context,
-          ));
+          updateLobos(
+            assignLoboComun(
+              index: index,
+              jugadores: jugadores,
+              rolesAsignados: rolesAsignados,
+              resolverRol: (nombre) => resolveRolByName(nombre, catalogo),
+              flow: lobosFlow,
+              context: context,
+            ),
+          );
+          mostrarNotificacionArriba(
+            context,
+            '${jugadores[index]} es Hombre Lobo',
+          );
         } else if (lobosFlow.asignados && lobosFlow.victimaIndex == null) {
-          updateLobos(elegirVictimaComun(
-            index: index,
-            jugadores: jugadores,
-            flow: lobosFlow,
-            context: context,
-          ));
+          updateLobos(
+            elegirVictimaComun(
+              index: index,
+              jugadores: jugadores,
+              flow: lobosFlow,
+              context: context,
+            ),
+          );
+          if (lobosFlow.victimaIndex != null) {
+            mostrarNotificacionArriba(
+              context,
+              'Los lobos atacarán a: ${jugadores[lobosFlow.victimaIndex!]}',
+            );
+          }
         }
         break;
 
@@ -138,6 +202,10 @@ class PrimeraNoche {
           rolesAsignados: rolesAsignados,
           catalogo: catalogo,
           context: context,
+        );
+        mostrarNotificacionArriba(
+          context,
+          '${jugadores[index]} es ${reglaActual.rol}',
         );
     }
   }

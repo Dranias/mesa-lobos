@@ -14,6 +14,14 @@ class ConfiguracionJugadoresScreen extends StatefulWidget {
 
 class _ConfiguracionJugadoresScreenState
     extends State<ConfiguracionJugadoresScreen> {
+  static const List<String> _nombresPorDefecto = [
+    'Santiago',
+    'Aylin',
+    'Katia',
+    'Fany',
+    'Abdiel',
+    'Dulce',
+  ];
   final List<TextEditingController> _controllers = [];
   static const int _minJugadores = 6;
 
@@ -21,7 +29,7 @@ class _ConfiguracionJugadoresScreenState
   void initState() {
     super.initState();
     for (int i = 0; i < _minJugadores; i++) {
-      _controllers.add(TextEditingController());
+      _controllers.add(TextEditingController(text: _nombresPorDefecto[i]));
     }
   }
 
@@ -208,13 +216,16 @@ class _SeleccionRolesScreenState extends State<SeleccionRolesScreen> {
   }
 
   void _iniciarPartida() {
-    // Se puede iniciar aunque haya roles sin seleccionar; usamos Aldeano por defecto en MesaScreen.
+    final rolesActivos = _rolesSeleccionados
+        .where((rol) => rol != null)
+        .toList();
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => MesaScreen(
           jugadores: widget.jugadores,
-          rolesSeleccionados: _rolesSeleccionados,
+          rolesSeleccionados: rolesActivos,
           cantidadLobos: cantidadLobosSeleccionados,
         ),
       ),

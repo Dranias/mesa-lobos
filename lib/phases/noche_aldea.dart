@@ -4,6 +4,7 @@ import '../data/roles.dart';
 import '../roles/vidente.dart';
 import '../roles/lobos_comunes.dart';
 import '../managers/roles_manager.dart';
+import '../utils/notificaciones.dart'; 
 
 class NocheAldea {
   static List<Regla> generarSecuencia(List<Rol?> rolesSeleccionados) {
@@ -43,6 +44,7 @@ class NocheAldea {
             resolverRol: (nombre) => resolveRolByName(nombre, catalogo),
             context: context,
           ));
+          mostrarNotificacionArriba(context, '${jugadores[index]} es la Vidente');
         } else if (!videnteFlow.objetivoAsignado) {
           updateVidente(observarJugador(
             index: index,
@@ -52,6 +54,10 @@ class NocheAldea {
             relaciones: relaciones,
             context: context,
           ));
+          if (videnteFlow.objetivoIndex != null) {
+            mostrarNotificacionArriba(
+                context, 'La Vidente observa a: ${jugadores[videnteFlow.objetivoIndex!]}');
+          }
         }
         break;
 
@@ -63,6 +69,10 @@ class NocheAldea {
             flow: lobosFlow,
             context: context,
           ));
+          if (lobosFlow.victimaIndex != null) {
+            mostrarNotificacionArriba(
+                context, 'Los lobos atacarán a: ${jugadores[lobosFlow.victimaIndex!]}');
+          }
         }
         break;
 
@@ -75,6 +85,7 @@ class NocheAldea {
           catalogo: catalogo,
           context: context,
         );
+        mostrarNotificacionArriba(context, '${jugadores[index]} es ${reglaActual.rol}');
     }
   }
 }

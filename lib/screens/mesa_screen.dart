@@ -82,9 +82,9 @@ class _MesaScreenState extends State<MesaScreen> {
     }
 
     if (nocheActual == 1) {
-      secuencia = primera.reglasPrimeraNoche;
+      secuencia = PrimeraNoche.generarSecuencia(widget.rolesSeleccionados);
     } else {
-      secuencia = cada.reglasCadaNoche;
+      secuencia = NocheAldea.generarSecuencia(widget.rolesSeleccionados);
     }
 
     pasoActual = 0;

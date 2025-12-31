@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/reglas_dia.dart';
 import '../data/roles.dart';
+import '../utils/notificaciones.dart';
 
 class DiaAldea {
   static List<Regla> generarSecuencia(List<Rol?> rolesSeleccionados) {
@@ -126,6 +127,10 @@ class DiaAldea {
                                           registrarVoto(index, j);
                                         });
                                         Navigator.of(ctx2).pop();
+                                        // 👇 notificación arriba
+                                        mostrarNotificacionArriba(
+                                            context,
+                                            '$nombre votó contra ${jugadores[j]}');
                                       },
                                       child: Text(jugadores[j]),
                                     ),
@@ -153,6 +158,10 @@ class DiaAldea {
                     Navigator.of(ctx).pop();
                     if (victima != null) {
                       onLinchamiento(victima!);
+                      // 👇 notificación arriba
+                      mostrarNotificacionArriba(
+                          context,
+                          '${jugadores[victima!]} fue linchado por la aldea');
                     }
                   },
                   child: const Text('Finalizar votación'),
@@ -177,9 +186,7 @@ class DiaAldea {
   }) {
     switch (reglaActual.rol) {
       case 'Alguacil':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('El Alguacil incita a votar.')),
-        );
+        mostrarNotificacionArriba(context, 'El Alguacil incita a votar.');
         break;
       default:
         // Por ahora no hace nada especial
