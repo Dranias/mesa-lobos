@@ -304,6 +304,8 @@ class _MesaScreenState extends State<MesaScreen> {
           updateVidente: (f) => videnteFlow = f,
           updateLobos: (f) => lobosFlow = f,
           updateBruja: _updateBruja,
+          jugadoresMuertos: jugadoresMuertos,
+          rolesIniciales: rolesAsignados,
         );
       }
       // --- Día ---

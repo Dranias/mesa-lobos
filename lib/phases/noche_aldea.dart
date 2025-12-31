@@ -3,7 +3,7 @@ import '../data/reglas_cada_noche.dart';
 import '../data/roles.dart';
 import '../roles/vidente.dart';
 import '../roles/lobos_comunes.dart';
-import '../roles/bruja.dart'; // 👈 flujo y helpers de la Bruja
+import '../roles/bruja.dart';
 import '../managers/roles_manager.dart';
 import '../utils/notificaciones.dart';
 
@@ -34,6 +34,8 @@ class NocheAldea {
     required void Function(VidenteFlow) updateVidente,
     required void Function(LobosComunesFlow) updateLobos,
     required void Function(BrujaFlow) updateBruja,
+    required Set<int> jugadoresMuertos,
+    required Map<int, Rol> rolesIniciales,
   }) {
     if (!catalogo.any((r) => r?.nombre == reglaActual.rol)) return;
 
@@ -84,9 +86,7 @@ class NocheAldea {
         break;
 
       case 'Bruja':
-        // 👇 La Bruja despierta después de los lobos
         if (!brujaFlow.brujaAsignada) {
-          // Asignar la carta PNG de la Bruja
           updateBruja(
             assignBruja(
               index: index,
@@ -110,20 +110,48 @@ class NocheAldea {
                     ElevatedButton.icon(
                       icon: Image.asset('assets/roles/pocion_vida.png', width: 24, height: 24),
                       label: const Text('Usar poción de vida'),
-                      onPressed: brujaFlow.pocionVidaUsada || lobosFlow.victimaIndex == null
+                      onPressed: brujaFlow.pocionVidaUsada || jugadoresMuertos.isEmpty
                           ? null
                           : () {
-                              updateBruja(
-                                brujaFlow.copyWith(
-                                  pocionVidaUsada: true,
-                                  pocionVidaObjetivo: lobosFlow.victimaIndex,
-                                ),
-                              );
-                              mostrarNotificacionArriba(
-                                context,
-                                'La Bruja salva a ${jugadores[lobosFlow.victimaIndex!]}',
-                              );
                               Navigator.pop(ctx);
+                              // Mostrar lista de jugadores muertos para elegir a quién revivir
+                              showDialog(
+                                context: context,
+                                builder: (ctx2) {
+                                  return AlertDialog(
+                                    title: const Text('¿A quién desea revivir la Bruja?'),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: jugadoresMuertos.map((muertoIndex) {
+                                        return ListTile(
+                                          title: Text(jugadores[muertoIndex]),
+                                          onTap: () {
+                                            // Quitar flag de muerto
+                                            jugadoresMuertos.remove(muertoIndex);
+                                            // Restaurar rol original
+                                            rolesAsignados[muertoIndex] = rolesIniciales[muertoIndex]!;
+                                            // Actualizar flujo
+                                            updateBruja(
+                                              brujaFlow.copyWith(
+                                                pocionVidaUsada: true,
+                                                pocionVidaObjetivo: muertoIndex,
+                                              ),
+                                            );
+                                            // Registrar en relaciones para el Drawer
+                                            relaciones.putIfAbsent('revividos', () => []);
+                                            relaciones['revividos']!.add(jugadores[muertoIndex]);
+                                            mostrarNotificacionArriba(
+                                              context,
+                                              'La Bruja revive a ${jugadores[muertoIndex]}',
+                                            );
+                                            Navigator.pop(ctx2);
+                                          },
+                                        );
+                                      }).toList(),
+                                    ),
+                                  );
+                                },
+                              );
                             },
                     ),
                     ElevatedButton.icon(

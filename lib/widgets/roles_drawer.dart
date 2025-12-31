@@ -6,6 +6,7 @@ import '../roles/bruja.dart'; // 👈 importa el flujo de la bruja
 /// - Qué jugador tiene qué rol (usando la imagen del rol).
 /// - Relaciones especiales (Cupido, Niño Salvaje, etc.).
 /// - Estado de la Bruja y sus pociones.
+/// - Jugadores revividos por la Bruja.
 class RolesDrawer extends StatelessWidget {
   final Map<int, Rol> rolesAsignados; // indexJugador -> Rol
   final Map<String, List<String>> relaciones; // nombreRol -> [actor, objetivo]
@@ -95,6 +96,11 @@ class RolesDrawer extends StatelessWidget {
                       ? 'Modelo: ${lista[0]} admira a ${lista[1]}'
                       : 'Modelo: relación incompleta';
                   break;
+                case 'revividos':
+                  subtitle = lista.isNotEmpty
+                      ? 'Revividos: ${lista.join(", ")}'
+                      : 'Sin revividos aún';
+                  break;
                 default:
                   subtitle = lista.join(' • ');
               }
@@ -114,9 +120,11 @@ class RolesDrawer extends StatelessWidget {
               }
 
               return ListTile(
-                leading: imagenRol != null && imagenRol!.isNotEmpty
-                    ? Image.asset(imagenRol!, width: 56, height: 56)
-                    : const Icon(Icons.link, size: 40),
+                leading: rolNombre == 'revividos'
+                    ? const Icon(Icons.auto_awesome, color: Colors.green, size: 40)
+                    : imagenRol != null && imagenRol!.isNotEmpty
+                        ? Image.asset(imagenRol!, width: 56, height: 56)
+                        : const Icon(Icons.link, size: 40),
                 title: Text(title),
                 subtitle: Text(subtitle),
               );

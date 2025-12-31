@@ -56,6 +56,6 @@ const List<Regla> reglasPrimeraNoche = [
     momento: 'primera_noche',
     orden: 5,
     frecuencia: 'una_vez',
-    condicion: 'Se revela y decide si usa sus poderes (vida o muerte)',
+    condicion: 'Se revela al narrador, no usa poderes',
   ),
 ];
