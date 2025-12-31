@@ -35,14 +35,14 @@ class PrimeraNoche {
     required NinoSalvajeFlow ninoFlow,
     required VidenteFlow videnteFlow,
     required LobosComunesFlow lobosFlow,
-    required BrujaFlow brujaFlow, // 👈 nuevo
+    required BrujaFlow brujaFlow,
     required List<Rol?> catalogo,
     required BuildContext context,
     required void Function(CupidoFlow) updateCupido,
     required void Function(NinoSalvajeFlow) updateNino,
     required void Function(VidenteFlow) updateVidente,
     required void Function(LobosComunesFlow) updateLobos,
-    required void Function(BrujaFlow) updateBruja, // 👈 nuevo
+    required void Function(BrujaFlow) updateBruja,
   }) {
     final activos = catalogo
         .where((r) => r != null)
