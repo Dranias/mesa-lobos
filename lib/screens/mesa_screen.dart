@@ -238,7 +238,10 @@ class _MesaScreenState extends State<MesaScreen> {
       ninoFlow = ninoFlow.copyWith(transformado: true);
 
       // Cambiar su rol a Lobo Común (usar el nombre exacto del catálogo)
-      final rolLobo = resolveRolByName('Hombres Lobo Comunes', widget.rolesSeleccionados);
+      final rolLobo = resolveRolByName(
+        'Hombres Lobo Comunes',
+        widget.rolesSeleccionados,
+      );
       rolesAsignados[ninoFlow.ninoIndex!] = rolLobo;
 
       mostrarNotificacionArriba(
@@ -321,46 +324,57 @@ class _MesaScreenState extends State<MesaScreen> {
         jugadores: widget.jugadores,
         rolesIniciales: widget.rolesSeleccionados,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: MesaJugadores(
-              jugadores: widget.jugadores,
-              rolesAsignados: rolesAsignados,
-              rolActivo: reglaActual?.rol,
-              onAsignarRolGenerico: _asignarRolGenerico,
-              cupidoFlow: cupidoFlow,
-              ninoFlow: ninoFlow,
-              videnteFlow: videnteFlow,
-              lobosFlow: lobosFlow,
-              alguacilIndex: alguacilIndex,
-              jugadoresMuertos: jugadoresMuertos,
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(
+              'assets/backgrounds/plaza_principal.png',
+            ), // 👈 fondo de la mesa
+            fit: BoxFit.cover,
           ),
-          if (reglaActual != null)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child: NarradorCard(
-                  nocheActual: nocheActual,
-                  pasoActual: pasoActual,
-                  totalPasos: secuencia.length,
-                  rolActivo: reglaActual.rol,
-                  cupidoAsignado: cupidoFlow.cupidoAsignado,
-                  primerEnamoradoAsignado: cupidoFlow.primerEnamoradoAsignado,
-                  segundoEnamoradoAsignado: cupidoFlow.segundoEnamoradoAsignado,
-                  ninoAsignado: ninoFlow.ninoAsignado,
-                  modeloAsignado: ninoFlow.modeloAsignado,
-                  videnteAsignada: videnteFlow.videnteAsignada,
-                  objetivoAsignado: videnteFlow.objetivoAsignado,
-                  cantidadLobos: widget.cantidadLobos,
-                  lobosSeleccionados: lobosFlow.lobosIndices.length,
-                  victimaAsignada: lobosFlow.victimaIndex != null,
-                  onNext: _siguientePaso,
-                ),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: MesaJugadores(
+                jugadores: widget.jugadores,
+                rolesAsignados: rolesAsignados,
+                rolActivo: reglaActual?.rol,
+                onAsignarRolGenerico: _asignarRolGenerico,
+                cupidoFlow: cupidoFlow,
+                ninoFlow: ninoFlow,
+                videnteFlow: videnteFlow,
+                lobosFlow: lobosFlow,
+                alguacilIndex: alguacilIndex,
+                jugadoresMuertos: jugadoresMuertos,
               ),
             ),
-        ],
+            if (reglaActual != null)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(
+                  child: NarradorCard(
+                    nocheActual: nocheActual,
+                    pasoActual: pasoActual,
+                    totalPasos: secuencia.length,
+                    rolActivo: reglaActual.rol,
+                    cupidoAsignado: cupidoFlow.cupidoAsignado,
+                    primerEnamoradoAsignado: cupidoFlow.primerEnamoradoAsignado,
+                    segundoEnamoradoAsignado:
+                        cupidoFlow.segundoEnamoradoAsignado,
+                    ninoAsignado: ninoFlow.ninoAsignado,
+                    modeloAsignado: ninoFlow.modeloAsignado,
+                    videnteAsignada: videnteFlow.videnteAsignada,
+                    objetivoAsignado: videnteFlow.objetivoAsignado,
+                    cantidadLobos: widget.cantidadLobos,
+                    lobosSeleccionados: lobosFlow.lobosIndices.length,
+                    victimaAsignada: lobosFlow.victimaIndex != null,
+                    onNext: _siguientePaso,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
